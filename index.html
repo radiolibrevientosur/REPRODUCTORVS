@@ -1456,10 +1456,42 @@ document.addEventListener('click', function (event) {
 });
 
 // Expose para onclick inline
-window.openRadioPlayer = openRadioPlayer;
-window.minimizeRadioPlayer = minimizeRadioPlayer;
-window.expandRadioPlayer = expandRadioPlayer;
-window.closeRadioPlayer = closeRadioPlayer;
+
+// ============================================================
+// COMUNICACIÓN CON LA PÁGINA PADRE
+// ============================================================
+function avisarPadre(estado) {
+  if (window.parent && window.parent !== window) {
+    try {
+      window.parent.postMessage({ type: 'RVS_RADIO_STATE', state: estado }, '*');
+    } catch (e) {}
+  }
+}
+
+var _openRadioPlayer = openRadioPlayer;
+window.openRadioPlayer = function() {
+  _openRadioPlayer.apply(this, arguments);
+  avisarPadre('expanded');
+};
+
+var _minimizeRadioPlayer = minimizeRadioPlayer;
+window.minimizeRadioPlayer = function() {
+  _minimizeRadioPlayer.apply(this, arguments);
+  avisarPadre('minimized');
+};
+
+var _expandRadioPlayer = expandRadioPlayer;
+window.expandRadioPlayer = function() {
+  _expandRadioPlayer.apply(this, arguments);
+  avisarPadre('expanded');
+};
+
+var _closeRadioPlayer = closeRadioPlayer;
+window.closeRadioPlayer = function() {
+  _closeRadioPlayer.apply(this, arguments);
+  avisarPadre('closed');
+};
+
 window.togglePlay = togglePlay;
 window.nextTrack = nextTrack;
 window.prevTrack = prevTrack;
@@ -1478,6 +1510,8 @@ window.toggleShuffle = toggleShuffle;
 window.toggleRepeat = toggleRepeat;
 window.announceTime = announceTime;
 
+// Avisa al padre al cargar
+avisarPadre('expanded');
 })();
 </script>
 </body>
