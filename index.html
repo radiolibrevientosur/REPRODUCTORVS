@@ -996,8 +996,14 @@ function selectMenuOption(option) {
     else updateNowPlayingTag();
     checkOfflineState();
   } else if (option === 'salir') {
+  // Avisar al padre PRIMERO (antes de cerrar el iframe)
+  avisarPadre('closed');
+  // Pequeño delay para asegurar que el mensaje se envíe
+  setTimeout(function() {
     closeRadioPlayer();
-  }
+  }, 50);
+  return; // Salir de la función inmediatamente
+}
 }
 
 function selectMusicGenre(genreKey) {
