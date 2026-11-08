@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Radio Viento Sur</title>
-<style>
+<style><!DOCTYPE html>
   *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overflow:hidden;background:transparent;color:#fff;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
@@ -285,7 +285,7 @@ html,body{height:100%;overflow:hidden;background:transparent;color:#fff;
 
   @media(max-width:700px){
     #radio-popup-overlay{padding:max(20px,env(safe-area-inset-top)) 20px max(24px,env(safe-area-inset-bottom));
-      border-radius:18px 18px 0 0;
+      border-radius:0;
       background:radial-gradient(ellipse at 50% 0%,rgba(52,211,153,.2),transparent 52%),
         linear-gradient(180deg,#263a3b 0%,#172324 48%,#121212 100%)}
     #radio-about-panel{background:radial-gradient(ellipse at 50% 0%,rgba(52,211,153,.2),transparent 52%),
@@ -1367,6 +1367,26 @@ function closeRadioPlayer() {
   closePlaylistPanel();
 }
 
+let swipeStart = null;
+popup.addEventListener('pointerdown', function (event) {
+  if (event.pointerType !== 'touch') return;
+  if (event.target.closest('button,a,input,[role="button"],.radio-progress-bar-container,#playlist-overlay-panel,#radio-about-panel,.radio-dropdown-menu')) {
+    swipeStart = null;
+    return;
+  }
+  swipeStart = { x: event.clientX, y: event.clientY };
+}, { passive: true });
+
+popup.addEventListener('pointerup', function (event) {
+  if (!swipeStart) return;
+  const deltaY = event.clientY - swipeStart.y;
+  const deltaX = event.clientX - swipeStart.x;
+  swipeStart = null;
+  if (deltaY >= 72 && Math.abs(deltaX) < 90 && popup.scrollTop <= 0) minimizeRadioPlayer();
+}, { passive: true });
+
+popup.addEventListener('pointercancel', function () { swipeStart = null; }, { passive: true });
+
 // ============================================================
 // OFFLINE
 // ============================================================
@@ -1485,7 +1505,7 @@ function finishRadioIdentification() {
 // ============================================================
 // INIT
 // ============================================================
-loadTrack(currentTrackIndex);
+selectRandomMusicGenre();
 updateModeButtons();
 
 document.addEventListener('click', function (event) {
