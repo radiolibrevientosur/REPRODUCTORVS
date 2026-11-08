@@ -1,0 +1,1484 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Radio Viento Sur</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden;background:#0a0a0a;color:#fff;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+
+  /* ============================================================
+     OVERLAY PRINCIPAL
+     ============================================================ */
+  #radio-popup-overlay{
+    position:fixed;inset:0;
+    display:flex;flex-direction:column;justify-content:space-between;align-items:center;
+    padding:max(20px,env(safe-area-inset-top)) 20px max(28px,env(safe-area-inset-bottom));
+    overflow-y:auto;overscroll-behavior:contain;
+    background:linear-gradient(180deg,#2b555e 0%,#112226 50%,#121212 100%);
+    z-index:1;
+  }
+
+  /* Header */
+  .radio-header{
+    width:100%;max-width:360px;display:flex;justify-content:space-between;align-items:center;
+    margin-top:5px;flex-shrink:0;position:relative;
+  }
+  .radio-header-title{text-align:center;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:#b3b3b3;font-weight:500}
+  .radio-header-subtitle{font-weight:700;font-size:13px;color:#fff;text-align:center;margin-top:2px}
+  .btn-header-icon{
+    width:40px;height:40px;background:none;border:none;border-radius:50%;color:#fff;
+    padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:.9;
+    transition:background-color .2s,opacity .2s;
+  }
+  .btn-header-icon:hover{opacity:1;background-color:rgba(255,255,255,.1)}
+  .btn-header-icon:focus-visible{outline:2px solid #34d399;outline-offset:2px}
+
+  /* Portada */
+  .radio-cover-container{
+    width:min(100%,320px,38vh);aspect-ratio:1/1;margin:clamp(8px,1.5vh,15px) 0;
+    box-shadow:0 16px 36px rgba(0,0,0,.32);border:1px solid rgba(255,255,255,.12);
+    border-radius:16px;overflow:hidden;background:rgba(0,0,0,.18);
+    display:flex;justify-content:center;align-items:center;flex-shrink:0;
+  }
+  .radio-cover-container img{width:100%;height:100%;object-fit:cover}
+
+  /* Info */
+  .radio-info{width:min(100%,320px);max-width:320px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+  .radio-info-text{min-width:0;flex:1;padding-right:12px}
+  .radio-utility-buttons{display:flex;flex-direction:column;align-items:center;gap:14px}
+  .radio-info-text h2{font-size:clamp(18px,4.8vw,20px);margin:0;font-weight:700;letter-spacing:-.3px;line-height:1.2;
+    display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+  .radio-info-text p{font-size:14px;color:#b3b3b3;margin:4px 0 0 0}
+
+  /* Tag de estado */
+  .radio-tag{display:inline-flex;align-items:center;gap:5px;padding:3px 7px 3px 5px;
+    border:1px solid rgba(255,82,82,.28);border-radius:999px;background:rgba(255,82,82,.06);
+    font-size:10px;color:#ff7f7f;margin-top:6px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    opacity:0;visibility:hidden;transition:opacity .2s,visibility .2s}
+  .radio-tag.status-connecting{color:#fbbf24;border-color:rgba(251,191,36,.28);background:rgba(251,191,36,.08)}
+  .radio-tag.status-connecting .radio-tag-dot{background:#fbbf24;box-shadow:0 0 0 1.5px rgba(251,191,36,.12)}
+  .radio-tag.status-live{color:#34d399;border-color:rgba(52,211,153,.28);background:rgba(52,211,153,.08)}
+  .radio-tag.status-live .radio-tag-dot{background:#34d399;box-shadow:0 0 0 1.5px rgba(52,211,153,.12)}
+  .radio-tag.status-no-signal,.radio-tag.status-offline{color:#fca5a5;border-color:rgba(248,113,113,.32);background:rgba(248,113,113,.1)}
+  .radio-tag.status-no-signal .radio-tag-dot,.radio-tag.status-offline .radio-tag-dot{background:#f87171;animation:none}
+  .radio-tag.visible{opacity:1;visibility:visible}
+  .radio-tag-dot{width:5px;height:5px;background:#ff5252;border-radius:50%;
+    box-shadow:0 0 0 1.5px rgba(255,82,82,.12);animation:livePulse 1.7s ease-in-out infinite}
+  @keyframes livePulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
+
+  /* Iconos de utilidades */
+  .radio-btn-icon{background:none;border:none;color:#fff;cursor:pointer;display:flex;align-items:center;
+    justify-content:center;padding:0;transition:transform .15s,color .2s}
+  .radio-btn-icon:active{transform:scale(.92)}
+  .radio-btn-icon.saved-offline{color:#ff3b30!important;transform:scale(1.1)}
+  .radio-btn-icon.is-active{color:#34d399}
+  .radio-btn-icon.is-active.repeat-one{color:#fbbf24}
+  .radio-btn-icon.stream-fallback{color:#34d399;background:rgba(52,211,153,.12);border-radius:50%;
+    box-shadow:0 0 0 4px rgba(52,211,153,.07);animation:streamFallbackPulse 1.8s ease-in-out infinite}
+  @keyframes streamFallbackPulse{50%{box-shadow:0 0 0 7px rgba(52,211,153,.02)}}
+  @keyframes savePulse{0%{transform:scale(1)}50%{transform:scale(1.35) rotate(12deg)}100%{transform:scale(1.1) rotate(0)}}
+  .radio-btn-icon.animate-save{animation:savePulse .4s ease-in-out}
+
+  /* Barra de progreso */
+  .radio-progress-bar-container{width:min(100%,320px);margin:8px 0 4px;cursor:pointer;flex-shrink:0}
+  .radio-progress-bar{width:100%;height:4px;background:rgba(255,255,255,.2);border-radius:2px;position:relative}
+  .radio-progress-fill{width:0%;height:100%;background:#fff;border-radius:2px;position:relative}
+  .radio-progress-dot{position:absolute;right:-4px;top:-3px;width:10px;height:10px;background:#fff;border-radius:50%}
+  .radio-time-labels{display:flex;justify-content:space-between;font-size:11px;color:#b3b3b3;margin-top:8px;font-weight:500}
+
+  /* Controles principales */
+  .radio-controls{width:min(100%,320px);display:flex;justify-content:space-between;align-items:center;margin-top:4px;flex-shrink:0}
+  .radio-btn-play{width:64px;height:64px;border-radius:50%;background:#fff;color:#000;border:none;
+    display:flex;justify-content:center;align-items:center;cursor:pointer;
+    box-shadow:0 4px 15px rgba(0,0,0,.3);transition:transform .15s}
+  .radio-btn-play:active{transform:scale(.95)}
+
+  /* Fila secundaria */
+  .playlist-open-row{width:min(100%,320px);display:flex;justify-content:space-between;align-items:center;margin-top:2px;flex-shrink:0}
+  .playlist-open-actions{display:flex;align-items:center;gap:8px}
+  .radio-secondary-button,.stream-button{flex-direction:column;width:44px;height:44px;color:#b3b3b3;border-radius:50%;
+    transition:color .2s,background-color .2s}
+  .radio-secondary-button:hover,.radio-secondary-button:focus-visible,
+  .stream-button:hover,.stream-button:focus-visible{color:#34d399;background-color:rgba(255,255,255,.08)}
+  .radio-secondary-button:focus-visible,.stream-button:focus-visible{outline:2px solid #34d399;outline-offset:2px;border-radius:8px}
+  .local-time-button{width:82px;height:44px;flex-direction:row;gap:5px;color:#b3b3b3}
+  .local-time-button span{font-size:9px;font-weight:600;line-height:1.1;white-space:nowrap}
+
+  /* ============================================================
+     MENÚ BOTTOM SHEET
+     ============================================================ */
+  .radio-dropdown-menu{
+    display:block;position:fixed;bottom:0;left:0;width:100%;max-height:80vh;overflow-y:auto;
+    background:#242424;border-top:1px solid rgba(255,255,255,.12);border-radius:20px 20px 0 0;
+    box-shadow:0 -10px 30px rgba(0,0,0,.8);z-index:100000;padding:12px 0 28px 0;
+    transform:translateY(100%);transition:transform .3s cubic-bezier(.16,1,.3,1);pointer-events:none;
+  }
+  .radio-dropdown-menu.show{transform:translateY(0);pointer-events:auto}
+  .radio-dropdown-menu::before{content:"";display:block;width:36px;height:4px;
+    background:rgba(255,255,255,.3);border-radius:2px;margin:0 auto 12px auto}
+  .radio-dropdown-item{padding:14px 24px;font-size:15px;font-weight:600;color:#e5e5e5;cursor:pointer;
+    display:flex;align-items:center;gap:12px;transition:background .2s,color .2s;
+    border-bottom:1px solid rgba(255,255,255,.04)}
+  .radio-dropdown-item:last-child{border-bottom:none}
+  .radio-dropdown-item:hover,.radio-dropdown-item:active{background:rgba(255,255,255,.08);color:#fff}
+  .radio-dropdown-item.has-submenu{display:flex;justify-content:space-between;align-items:center}
+  .radio-submenu{display:none;background:rgba(0,0,0,.25);padding-left:12px}
+  .radio-submenu.show{display:block}
+  .radio-dropdown-item.subitem{font-size:13.5px;padding:11px 24px;color:#b3b3b3;
+    border-bottom:1px solid rgba(255,255,255,.02)}
+  .radio-dropdown-item.subitem:hover{color:#fff;background:rgba(255,255,255,.05)}
+  #music-submenu .radio-dropdown-item.subitem::before,
+  #micros-submenu .radio-dropdown-item.subitem::before{
+    content:"";display:block;width:32px;height:32px;flex:0 0 32px;border:1px solid #555;border-radius:50%;
+    background:radial-gradient(circle,#a7f3d0 0 3px,#151515 3.5px 5px,transparent 5.5px),
+      repeating-radial-gradient(circle,#292929 0 1px,#101010 2px 3px);
+    box-shadow:0 1px 5px rgba(0,0,0,.45);
+  }
+
+  /* ============================================================
+     PANELES (Acerca de / Playlist)
+     ============================================================ */
+  #radio-about-panel,#playlist-overlay-panel{
+    position:fixed;bottom:0;left:0;width:100%;height:75vh;max-height:520px;
+    background:linear-gradient(180deg,#2b555e 0%,#112226 50%,#121212 100%);
+    border-top:1px solid rgba(255,255,255,.12);border-radius:20px 20px 0 0;
+    box-shadow:0 -10px 40px rgba(0,0,0,.85);z-index:100001;box-sizing:border-box;
+    padding:12px 20px 24px;overflow-y:auto;transform:translateY(100%);
+    transition:transform .3s cubic-bezier(.16,1,.3,1);pointer-events:none;
+    display:flex;flex-direction:column;
+  }
+  #playlist-overlay-panel{background:#1a1a1a}
+  #radio-about-panel.show,#playlist-overlay-panel.show{transform:translateY(0);pointer-events:auto}
+  #radio-about-panel::before,#playlist-overlay-panel::before{
+    content:"";display:block;width:36px;height:4px;background:rgba(255,255,255,.3);
+    border-radius:2px;margin:0 auto 10px auto;flex-shrink:0;
+  }
+  .radio-about-header,.playlist-panel-header{display:flex;justify-content:space-between;align-items:center;
+    padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:12px;flex-shrink:0}
+  .radio-about-title,.playlist-panel-title{font-size:16px;font-weight:700;color:#fff;margin:0;letter-spacing:-.2px}
+  .radio-about-description{margin:0;color:#d6d3d1;font-size:15px;line-height:1.75}
+  #playlist-items-container{display:flex;flex-direction:column;gap:6px;overflow-y:auto;flex-grow:1}
+
+  /* Playlist items */
+  .playlist-item{padding:12px 14px;border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:14px;
+    background:rgba(255,255,255,.03);transition:background .2s,transform .15s;border:1px solid transparent}
+  .playlist-item:hover{background:rgba(255,255,255,.08)}
+  .playlist-item.active{background:rgba(29,185,84,.12);border-color:rgba(29,185,84,.3)}
+  .playlist-item-info{display:flex;flex-direction:column;flex-grow:1;min-width:0}
+  .playlist-item-title{font-size:14px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .playlist-item.active .playlist-item-title{color:#1DB954}
+  .playlist-item-artist{font-size:12px;color:#b3b3b3;margin-top:2px}
+  .playlist-item-cover{width:54px;height:54px;border-radius:8px;object-fit:cover;flex-shrink:0;
+    background:#263238;box-shadow:0 3px 10px rgba(0,0,0,.25)}
+  .queue-next-button{width:40px;height:40px;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+    border:1px solid rgba(255,255,255,.14);border-radius:50%;background:rgba(255,255,255,.06);color:#e5e5e5;
+    cursor:pointer;transition:background .2s,color .2s,border-color .2s,transform .2s}
+  .queue-next-button:hover,.queue-next-button.is-added{border-color:rgba(29,185,84,.55);
+    background:rgba(29,185,84,.14);color:#1DB954}
+  .queue-next-button:hover{transform:scale(1.06)}
+  .queue-next-button:focus-visible{outline:2px solid #1DB954;outline-offset:2px}
+
+  /* ============================================================
+     MINI BARRA
+     ============================================================ */
+  #radio-mini-bar{display:none;position:fixed;bottom:12px;left:50%;transform:translateX(-50%);
+    width:calc(100% - 24px);max-width:500px;height:56px;background:#3f1013;border-radius:8px;z-index:99990;
+    padding:8px 12px;color:#fff;box-shadow:0 6px 20px rgba(0,0,0,.6);cursor:pointer}
+  #radio-mini-bar.show{display:block}
+  .mini-bar-content{display:flex;align-items:center;justify-content:space-between;height:100%;width:100%}
+  .mini-bar-left{display:flex;align-items:center;gap:12px}
+  .mini-bar-img{width:40px;height:40px;border-radius:4px;object-fit:contain;background:#fff}
+  .mini-bar-text{display:flex;flex-direction:column}
+  .mini-bar-title{font-size:13px;font-weight:700;margin:0}
+  .mini-bar-subtitle{font-size:11px;color:#b3b3b3;margin:2px 0 0 0}
+  .mini-bar-right{display:flex;align-items:center;gap:16px}
+  .mini-progress-line{position:absolute;bottom:0;left:0;width:100%;height:2px;
+    background:rgba(255,255,255,.15);border-bottom-left-radius:8px;border-bottom-right-radius:8px;overflow:hidden}
+  .mini-progress-fill{width:0%;height:100%;background:#fff}
+
+  /* ============================================================
+     RESPONSIVE
+     ============================================================ */
+  @media(min-width:1024px){
+    .radio-dropdown-menu{top:50%;bottom:auto;left:50%;width:min(380px,calc(100vw - 48px));
+      max-height:min(72vh,620px);border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:12px 0;
+      box-shadow:0 24px 70px rgba(0,0,0,.55);transform:translate(-50%,calc(50vh + 100%))}
+    .radio-dropdown-menu.show{transform:translate(-50%,-50%)}
+    .radio-dropdown-menu::before{display:none}
+    #radio-about-panel,#playlist-overlay-panel{top:50%;bottom:auto;left:50%;
+      width:min(680px,calc(100vw - 64px));height:auto;max-height:min(76vh,680px);
+      border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:22px;
+      box-shadow:0 28px 80px rgba(0,0,0,.6);transform:translate(-50%,calc(50vh + 100%))}
+    #playlist-overlay-panel{height:min(76vh,680px);max-height:none}
+    #radio-about-panel.show,#playlist-overlay-panel.show{transform:translate(-50%,-50%)}
+    #radio-about-panel::before,#playlist-overlay-panel::before{display:none}
+    #radio-popup-overlay{justify-content:center;gap:clamp(8px,1.4vh,16px);padding:clamp(16px,3vh,28px) 32px;
+      background:radial-gradient(ellipse at 50% 0%,rgba(52,211,153,.18),transparent 48%),
+        radial-gradient(ellipse at 12% 88%,rgba(37,99,235,.12),transparent 34%),
+        linear-gradient(145deg,#172b2c 0%,#101b1d 48%,#101112 100%)}
+    .radio-header{max-width:620px;margin-top:0}
+    .radio-header-title{color:#a7f3d0;font-size:11px;letter-spacing:.18em}
+    .radio-header-subtitle{font-size:14px}
+    .radio-cover-container{width:min(34vh,360px,100%);margin:0;border-radius:22px;
+      border-color:rgba(255,255,255,.16);box-shadow:0 28px 70px rgba(0,0,0,.48),0 0 0 1px rgba(255,255,255,.04)}
+    .radio-info,.radio-progress-bar-container,.radio-controls,.playlist-open-row{width:min(100%,460px)}
+    .radio-info{max-width:460px}
+    .radio-info-text h2{font-size:clamp(22px,2vw,30px)}
+    .radio-info-text p{font-size:15px}
+    .radio-progress-bar-container{margin:0}
+    .radio-progress-bar{height:5px;background:rgba(255,255,255,.18)}
+    .radio-progress-fill{background:#34d399}
+    .radio-progress-dot{background:#a7f3d0}
+    .radio-controls{margin-top:0}
+    .radio-controls>.radio-btn-icon{width:48px;height:48px;color:#d6d3d1}
+    .radio-controls>.radio-btn-icon:hover{color:#34d399}
+    .radio-btn-play{width:64px;height:64px;color:#064e3b;background:#a7f3d0;
+      box-shadow:0 10px 28px rgba(52,211,153,.24)}
+    .playlist-open-row{margin-top:0}
+    .radio-secondary-button,.stream-button{color:#d6d3d1}
+    #radio-mini-bar{bottom:24px;width:min(720px,calc(100% - 48px));height:72px;padding:10px 16px;
+      border:1px solid rgba(255,255,255,.12);border-radius:14px;
+      background:linear-gradient(135deg,#183536,#172323 72%);box-shadow:0 18px 50px rgba(0,0,0,.38)}
+    .mini-bar-img{width:48px;height:48px;border-radius:8px}
+    .mini-bar-title{font-size:14px}
+    .mini-bar-subtitle{color:#a7f3d0}
+    .mini-bar-right{gap:18px}
+    .mini-progress-line{height:3px}
+    .mini-progress-fill{background:#34d399}
+  }
+
+  @media(max-width:700px){
+    #radio-popup-overlay{padding:max(20px,env(safe-area-inset-top)) 20px max(24px,env(safe-area-inset-bottom));
+      border-radius:18px 18px 0 0;
+      background:radial-gradient(ellipse at 50% 0%,rgba(52,211,153,.2),transparent 52%),
+        linear-gradient(180deg,#263a3b 0%,#172324 48%,#121212 100%)}
+    #radio-about-panel{background:radial-gradient(ellipse at 50% 0%,rgba(52,211,153,.2),transparent 52%),
+      linear-gradient(180deg,#263a3b 0%,#172324 48%,#121212 100%)}
+    .radio-header{max-width:420px;margin-top:0}
+    .radio-header-title{color:#a7f3d0;font-size:9px;letter-spacing:.18em}
+    .radio-cover-container{width:min(100%,420px,44vh);margin:clamp(8px,2vh,18px) 0;border:0;border-radius:8px;
+      box-shadow:0 20px 48px rgba(0,0,0,.42)}
+    .radio-info,.radio-progress-bar-container,.radio-controls,.playlist-open-row{width:min(100%,420px)}
+    .radio-info{max-width:420px}
+    .radio-info-text h2{font-size:clamp(20px,5.5vw,24px)}
+    .radio-progress-bar{background:rgba(255,255,255,.22)}
+    .radio-progress-fill{background:#34d399}
+    .radio-progress-dot{background:#a7f3d0}
+    .radio-controls{margin-top:8px}
+    .radio-btn-play{color:#064e3b;background:#a7f3d0;box-shadow:0 8px 24px rgba(52,211,153,.22)}
+    #radio-mini-bar{bottom:max(12px,env(safe-area-inset-bottom))}
+  }
+
+  @media(max-width:480px){
+    .radio-cover-container{width:min(228px,72%)}
+    .radio-btn-play{width:62px;height:62px}
+  }
+
+  @media(prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+  }
+</style>
+</head>
+<body>
+
+<div id="radio-popup-overlay" role="dialog" aria-modal="true" aria-label="Reproductor Radio Viento Sur">
+  <header class="radio-header">
+    <button class="btn-header-icon" onclick="minimizeRadioPlayer()" aria-label="Minimizar">
+      <svg fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewBox="0 0 24 24" width="24"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+    <div>
+      <div class="radio-header-title" id="header-top-title">SELECCIÓN MUSICAL</div>
+      <div class="radio-header-subtitle" id="header-subtitle">Viento Sur (Radio Libre)</div>
+    </div>
+    <button class="btn-header-icon" onclick="toggleOptionsMenu(event)" aria-label="Menú">
+      <svg fill="currentColor" height="20" viewBox="0 0 24 24" width="20"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+    </button>
+
+    <!-- MENÚ -->
+    <div class="radio-dropdown-menu" id="radio-dropdown">
+      <div class="radio-dropdown-item has-submenu" onclick="toggleSubmenu(event, 'music-submenu')">
+        <span>Selección Musical</span>
+        <span class="submenu-arrow">▾</span>
+      </div>
+      <div class="radio-submenu" id="music-submenu">
+        <div class="radio-dropdown-item subitem" onclick="selectMusicGenre('boleros')">Boleros</div>
+        <div class="radio-dropdown-item subitem" onclick="selectMusicCollection('calipso')">Calipso</div>
+        <div class="radio-dropdown-item subitem" onclick="selectMusicGenre('cantosLlano')">Cantos del Llano</div>
+        <div class="radio-dropdown-item subitem" onclick="selectMusicGenre('gaitas')">Gaita Venezolana</div>
+        <div class="radio-dropdown-item subitem" onclick="selectMusicGenre('jazz')">Jazz</div>
+        <div class="radio-dropdown-item subitem" onclick="selectMusicGenre('joropoCentral')">Joropo Central y Tuyero</div>
+        <div class="radio-dropdown-item subitem" onclick="selectMusicGenre('joropoLlanero')">Joropo Llanero</div>
+        <div class="radio-dropdown-item subitem" onclick="selectMusicCollection('merengue')">Merengue Venezolano</div>
+        <div class="radio-dropdown-item subitem" onclick="selectMusicCollection('navidena')">Música Navideña</div>
+        <div class="radio-dropdown-item subitem" onclick="selectMusicCollection('social')">Música Social</div>
+        <div class="radio-dropdown-item subitem" onclick="selectMusicCollection('oriental')">Oriental Vzla</div>
+        <div class="radio-dropdown-item subitem" onclick="selectMusicCollection('fusion')">RitmoFusión</div>
+        <div class="radio-dropdown-item subitem" onclick="selectMusicGenre('rockPop')">Rock-Pop</div>
+        <div class="radio-dropdown-item subitem" onclick="selectMusicCollection('romanticas')">Románticas Vzla</div>
+        <div class="radio-dropdown-item subitem" onclick="selectMusicCollection('tambores')">Tambores Vzla</div>
+        <div class="radio-dropdown-item subitem" onclick="selectMusicCollection('folclor')">Tradicional Vzla</div>
+      </div>
+      <div class="radio-dropdown-item" onclick="selectMenuOption('streaming')">Streaming</div>
+      <div class="radio-dropdown-item" onclick="selectMenuOption('podcast')">Podcast</div>
+
+      <div class="radio-dropdown-item has-submenu" onclick="toggleSubmenu(event, 'micros-submenu')">
+        <span>Micros Radiales</span>
+        <span class="submenu-arrow">▾</span>
+      </div>
+      <div class="radio-submenu" id="micros-submenu">
+        <div class="radio-dropdown-item subitem" onclick="selectMicroOption('asoprovida')">Asoprovida</div>
+        <div class="radio-dropdown-item subitem" onclick="selectMicroOption('consejos_comunales')">Consejos Comunales</div>
+        <div class="radio-dropdown-item subitem" onclick="selectMicroOption('micros_culturales')">Micros Culturales</div>
+        <div class="radio-dropdown-item subitem" onclick="selectMicroOption('eduardo_galeano')">Eduardo Galeano</div>
+        <div class="radio-dropdown-item subitem" onclick="selectMicroOption('chefe_radiofonico')">Chef Radiofónico</div>
+        <div class="radio-dropdown-item subitem" onclick="selectMicroOption('software_libre')">Software Libre</div>
+        <div class="radio-dropdown-item subitem" onclick="selectMicroOption('poesia')">Poesía</div>
+      </div>
+
+      <div class="radio-dropdown-item" onclick="selectMenuOption('salir')">Salir</div>
+    </div>
+  </header>
+
+  <div class="radio-cover-container">
+    <img alt="Portada" id="track-cover" src="https://archive.org/download/1790721176200/1790721176200.jpg"/>
+  </div>
+
+  <div id="playlist-overlay-panel">
+    <div class="playlist-panel-header">
+      <h3 class="playlist-panel-title" id="panel-title">Selección Musical</h3>
+      <button class="btn-header-icon" onclick="closePlaylistPanel()" aria-label="Cerrar">
+        <svg fill="none" height="22" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="22"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+    </div>
+    <div id="playlist-items-container"></div>
+  </div>
+
+  <div id="radio-about-panel" role="region">
+    <div class="radio-about-header">
+      <h3 class="radio-about-title" id="radio-about-title">Sobre Viento Sur</h3>
+      <button class="btn-header-icon" onclick="closeRadioAbout()" aria-label="Cerrar">
+        <svg fill="none" height="22" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="22"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+    </div>
+    <p class="radio-about-description">Radio Libre Viento Sur es una emisora comunitaria y cultural que transmite en el 88.5 FM, vinculada a la Casa de la Cultura Popular «Alí Rodríguez» y parte de las experiencias de radios liberadas y de software libre en Venezuela.</p>
+  </div>
+
+  <div class="radio-info">
+    <div class="radio-info-text">
+      <h2 id="track-title">Cargando...</h2>
+      <p id="track-artist">Viento Sur Radio</p>
+      <div class="radio-tag">
+        <span class="radio-tag-dot"></span>
+        <span aria-atomic="true" aria-live="polite" id="tag-label" role="status">Audio Playlist</span>
+      </div>
+    </div>
+    <div class="radio-utility-buttons">
+      <button class="radio-btn-icon" id="save-offline-btn" onclick="saveAudioOffline()" title="Guardar offline">
+        <svg fill="none" height="28" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24" width="28"><path d="M6 4.75A1.75 1.75 0 0 1 7.75 3h8.5A1.75 1.75 0 0 1 18 4.75V21l-6-4-6 4V4.75Z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="radio-progress-bar-container" onclick="seekAudio(event)">
+    <div class="radio-progress-bar" id="progress-bar-bg">
+      <div class="radio-progress-fill" id="progress-fill">
+        <div class="radio-progress-dot"></div>
+      </div>
+    </div>
+    <div class="radio-time-labels">
+      <span id="current-time">0:00</span>
+      <span id="total-time">0:00</span>
+    </div>
+  </div>
+
+  <div class="radio-controls">
+    <button class="radio-btn-icon" id="shuffle-toggle" onclick="toggleShuffle()" aria-label="Aleatorio" aria-pressed="false" title="Aleatorio">
+      <svg fill="none" height="22" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="22"><polyline points="16 3 21 3 21 8"/><line x1="4" x2="21" y1="20" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" x2="21" y1="15" y2="21"/><line x1="4" x2="9" y1="4" y2="9"/></svg>
+    </button>
+    <button class="radio-btn-icon" onclick="prevTrack()">
+      <svg fill="currentColor" height="26" viewBox="0 0 24 24" width="26"><rect height="14" rx="1" width="2.5" x="4" y="5"/><polygon points="20,5 9,12 20,19"/></svg>
+    </button>
+    <button class="radio-btn-play" id="main-play-btn" onclick="togglePlay(event)" aria-label="Reproducir">
+      <svg fill="currentColor" height="26" id="main-play-icon" style="margin-left:2px" viewBox="0 0 24 24" width="26"><polygon points="6 4 20 12 6 20"/></svg>
+    </button>
+    <button class="radio-btn-icon" id="next-track-button" onclick="nextTrack()" aria-label="Siguiente" title="Siguiente">
+      <svg fill="currentColor" height="26" viewBox="0 0 24 24" width="26"><polygon points="4,5 15,12 4,19"/><rect height="14" rx="1" width="2.5" x="17.5" y="5"/></svg>
+    </button>
+    <button class="radio-btn-icon" id="repeat-toggle" onclick="toggleRepeat()" aria-label="Repetición" aria-pressed="false" title="Repetición">
+      <svg fill="none" height="22" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="22"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+    </button>
+  </div>
+
+  <div class="playlist-open-row">
+    <button class="radio-btn-icon radio-secondary-button local-time-button" onclick="announceTime()" title="Hora local">
+      <svg fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24" width="20"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+      <span>Hora local</span>
+    </button>
+    <div class="playlist-open-actions">
+      <button class="radio-btn-icon stream-button" onclick="selectMenuOption('streaming')" title="Stream en vivo">
+        <svg fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24" width="20"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49"/><path d="M7.76 16.24a6 6 0 0 1 0-8.49"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M4.93 19.07a10 10 0 0 1 0-14.14"/></svg>
+      </button>
+      <button class="radio-btn-icon radio-secondary-button" id="playlist-open-button" onclick="openCurrentPlaylist()" title="Ver lista actual">
+        <svg fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24" width="20"><path d="M4 6h16M4 12h16M4 18h10"/><path d="m16 16 3 3 3-3"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="radio-mini-bar" onclick="expandRadioPlayer()">
+  <div class="mini-bar-content">
+    <div class="mini-bar-left">
+      <img alt="Radio Logo" class="mini-bar-img" id="mini-cover" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhEGkk2XfvnEHSl6zTAt5GkFYEcK8kGIgFrPyDiQwFq_tkE6IcKzQphvG9TUOGSF-y5A3Pnc66X1s9ZrBvnQ7k3K8XkOyjDrRuf44Oy94uFzq-lZeVpsY_RunWfJVkgoMPqhtQk1qJZQVKKZ8WWUggwdWOX0v4cJc6yOzrXUBPViPdAkkvKZ0HIEIkxC-4/s216/logo_2Bvientosur2020.png"/>
+      <div class="mini-bar-text">
+        <span class="mini-bar-title" id="mini-title">Cargando...</span>
+        <span class="mini-bar-subtitle" id="mini-artist">Viento Sur Radio</span>
+      </div>
+    </div>
+    <div class="mini-bar-right">
+      <button class="radio-btn-icon" onclick="event.stopPropagation(); saveAudioOffline();" title="Guardar offline">
+        <svg fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24" width="24"><path d="M6 4.75A1.75 1.75 0 0 1 7.75 3h8.5A1.75 1.75 0 0 1 18 4.75V21l-6-4-6 4V4.75Z"/></svg>
+      </button>
+      <button class="btn-header-icon" id="mini-play-btn" onclick="togglePlay(event)" title="Reproducir">
+        <svg fill="currentColor" height="22" id="mini-play-icon" viewBox="0 0 24 24" width="22"><polygon points="6 4 20 12 6 20"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="mini-progress-line"><div class="mini-progress-fill" id="mini-progress-fill"></div></div>
+</div>
+
+<audio id="audio-stream" preload="none"></audio>
+
+<script>
+(function(){
+'use strict';
+
+// ============================================================
+// ⚙️ CONFIGURACIÓN Y LISTAS REALES
+// ============================================================
+const musicCover = 'https://archive.org/download/1790721176200/1790721176200.jpg';
+const radioArtworkUrl = 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhEGkk2XfvnEHSl6zTAt5GkFYEcK8kGIgFrPyDiQwFq_tkE6IcKzQphvG9TUOGSF-y5A3Pnc66X1s9ZrBvnQ7k3K8XkOyjDrRuf44Oy94uFzq-lZeVpsY_RunWfJVkgoMPqhtQk1qJZQVKKZ8WWUggwdWOX0v4cJc6yOzrXUBPViPdAkkvKZ0HIEIkxC-4/s512/logo_2Bvientosur2020.png';
+const liveStreamUrl = 'https://giss.tv:666/vientosuronline.mp3';
+const radioIdentificationUrl = 'https://ia600401.us.archive.org/9/items/tisp-88.5/TISP%2088.5%20Alvarez%20Jr.mp3';
+
+// Playlist estándar
+const standardMusicPlaylist = [
+  { title:'Fusión Mestiza', artist:'Viento Sur Radio', url:'https://archive.org/download/fusion-mestiza/Fusion-Mestiza.mp3', cover: musicCover },
+  { title:'Oriental Vzla', artist:'Viento Sur Radio', url:'https://archive.org/download/oriental-vzla/oriental%20vzla.mp3', cover: musicCover },
+  { title:'Folclor Vzla', artist:'Viento Sur Radio', url:'https://archive.org/download/pop_20261002/Folclor_vzla.mp3', cover: musicCover },
+  { title:'Románticas 1', artist:'Viento Sur Radio', url:'https://archive.org/download/pop_20261002/Romanticas-1.mp3', cover: musicCover },
+  { title:'Románticas 3', artist:'Viento Sur Radio', url:'https://archive.org/download/pop_20261002/Romanticas-3.mp3', cover: musicCover },
+  { title:'Pop', artist:'Viento Sur Radio', url:'https://archive.org/download/pop_20261002/pop.mp3', cover: musicCover }
+];
+
+function createMusicTrackList(urls) {
+  return urls.map(url => {
+    const filename = decodeURIComponent(url.split('/').pop()).replace(/\.mp3$/i, '');
+    const sep = filename.indexOf(' - ');
+    return {
+      artist: sep === -1 ? 'Viento Sur Radio' : filename.slice(0, sep).replace(/_/g, ', '),
+      title: sep === -1 ? filename : filename.slice(sep + 3),
+      url,
+      cover: musicCover
+    };
+  });
+}
+
+async function fetchArchiveMusicTracks(identifier) {
+  const response = await fetch('https://archive.org/metadata/' + encodeURIComponent(identifier) + '/files');
+  if (!response.ok) throw new Error('Archive.org respondió ' + response.status);
+  const data = await response.json();
+  if (!data || !Array.isArray(data.result)) throw new Error('Respuesta inválida');
+  const tracks = data.result
+    .filter(f => f && typeof f.name === 'string' && /\.mp3$/i.test(f.name))
+    .map(f => {
+      const filename = f.name.replace(/\.mp3$/i, '');
+      const sep = filename.indexOf(' - ');
+      return {
+        artist: sep === -1 ? 'Viento Sur Radio' : filename.slice(0, sep),
+        title: sep === -1 ? filename : filename.slice(sep + 3),
+        url: 'https://archive.org/download/' + encodeURIComponent(identifier) + '/' + encodeURIComponent(f.name),
+        cover: musicCover
+      };
+    })
+    .sort((a, b) => (a.artist + ' ' + a.title).localeCompare(b.artist + ' ' + b.title, 'es'));
+  if (tracks.length === 0) throw new Error('Sin MP3');
+  return tracks;
+}
+
+const musicGenreLabels = {
+  electronica: 'Música Electrónica',
+  boleros: 'Boleros',
+  jazz: 'Jazz',
+  rockPop: 'Rock-Pop',
+  gaitas: 'Gaita Venezolana',
+  cantosLlano: 'Cantos del Llano',
+  joropoCentral: 'Joropo Central y Tuyero',
+  joropoLlanero: 'Joropo Llanero'
+};
+
+const musicGenreLists = {
+  electronica: createMusicTrackList([
+    'https://archive.org/download/electro_202610/Africanismo%20ft%20Bob%20Sinclair%20-%20Sea%20Lion%20Woman.mp3',
+    'https://archive.org/download/electro_202610/Afro%20Criollo%20-%20A%20cuerpo%20cobarde%20%28corta%29.mp3',
+    'https://archive.org/download/electro_202610/Afro%20Criollo%20-%20La%20Vaca%20Mariposa.mp3',
+    'https://archive.org/download/electro_202610/Afro%20Criollo%20-%20La%20voy%20a%20tocar%20a%20pie%20Gaita%20onomatopeyica%20%28house%29.mp3',
+    'https://archive.org/download/electro_202610/Afro%20Criollo%20-%20Mi%20Ranchito%20La%20Cachua%20Si%20no%20me%20dan%20de%20beber.mp3',
+    'https://archive.org/download/electro_202610/Afro%20Criollo%20-%20Sigan%20Bailando.mp3',
+    'https://archive.org/download/electro_202610/Bajofondo%20Tango%20Club%20-%20Electro%20tango.mp3',
+    'https://archive.org/download/electro_202610/Bossa%20n%20Marley%20-%20Could%20you%20be%20loved.mp3',
+    'https://archive.org/download/electro_202610/DJ%20Pablo%20Guzman%20-%20Los%20Hijos%20Infinitos%20%28Andres%20Eloy%20Blanco%29.mp3',
+    'https://archive.org/download/electro_202610/Emily%20Galaviz%20y%20Manuel%20Santos%20-%20Va%20colgando%20de%20un%20hilito%20%28Guayabo%20Tech%29.mp3'
+  ]),
+  boleros: createMusicTrackList([
+    'https://archive.org/download/lista-de-boleros/Amparo%20Montes%20-%20Pensando%20en%20Ti.mp3',
+    'https://archive.org/download/lista-de-boleros/Armando%20Manzanero%20-%20Somos%20Novios.mp3',
+    'https://archive.org/download/lista-de-boleros/Celia%20Cruz%20-%20Quiz%C3%A1s_%20Quiz%C3%A1s_%20Quiz%C3%A1s.mp3',
+    'https://archive.org/download/lista-de-boleros/Felipe%20Pirela%20-%20Cuando%20Estemos%20Viejos.mp3',
+    'https://archive.org/download/lista-de-boleros/H%C3%A9ctor%20Cabrera%20-%20Hay%20Que%20Saber%20Perder.mp3',
+    'https://archive.org/download/lista-de-boleros/Julio%20Jaramillo%20-%20Nuestro%20Juramento.mp3',
+    'https://archive.org/download/lista-de-boleros/Los%20Panchos%20-%20B%C3%A9same%20Mucho.mp3',
+    'https://archive.org/download/lista-de-boleros/Panchito%20Riset%20-%20De%20Cigarro%20En%20Cigarro.mp3',
+    'https://archive.org/download/lista-de-boleros/Panchito%20Riset%20-%20Te%20Odio%20Y%20Te%20Quiero.mp3',
+    'https://archive.org/download/lista-de-boleros/Rita%20Pay%C3%A9s_%20Elisabeth%20Roma%20-%20Algo%20contigo.mp3'
+  ]),
+  jazz: createMusicTrackList([
+    'https://archive.org/download/jazz_20261006/Billie%20Holiday%20-%20Blue%20Moon.mp3',
+    'https://archive.org/download/jazz_20261006/Clifford%20Brown%20-%20Joy%20Spring.mp3',
+    'https://archive.org/download/jazz_20261006/Dave%20Brubeck%20-%20Besame%20Mucho.mp3',
+    'https://archive.org/download/jazz_20261006/Frank%20Sinatra%20-%20You%20Go%20To%20My%20Head%20-%202020%20Mix.mp3',
+    'https://archive.org/download/jazz_20261006/Galt%20MacDermot%20-%20Coffee%20Cold.mp3',
+    'https://archive.org/download/jazz_20261006/Johnny%20Hartman%20-%20Ain%27t%20Misbehavin%27.mp3',
+    'https://archive.org/download/jazz_20261006/Lee%20Konitz%20-%20I%20Remember%20You.mp3',
+    'https://archive.org/download/jazz_20261006/Lou%20Donaldson%20-%20Autumn%20Nocturne.mp3',
+    'https://archive.org/download/jazz_20261006/Louis%20Armstrong%20-%20La%20vie%20en%20rose.mp3',
+    'https://archive.org/download/jazz_20261006/Wayne%20Shorter%20-%20Night%20Dreamer%20-%20Remastered%202004%20_%20Rudy%20Van%20Gelder%20Edition.mp3'
+  ]),
+  rockPop: createMusicTrackList([
+    'https://archive.org/download/rock-pop_20261006/Aterciopelados%20-%20Maligno.mp3',
+    'https://archive.org/download/rock-pop_20261006/Caf%C3%A9%20Tacvba%20-%20Chilanga%20banda.mp3',
+    'https://archive.org/download/rock-pop_20261006/Caifanes%20-%20La%20Negra%20Tomasa%20-%20Bilongo%20-%20Versi%C3%B3n%20Tropical%20%281%29.mp3',
+    'https://archive.org/download/rock-pop_20261006/El%20%C3%9Altimo%20De%20La%20Fila%20-%20Como%20un%20burro%20amarrado%20en%20la%20puerta%20del%20baile.mp3',
+    'https://archive.org/download/rock-pop_20261006/Hombres%20G%20-%20Te%20quiero.mp3',
+    'https://archive.org/download/rock-pop_20261006/La%20Uni%C3%B3n%20-%20Lobo-hombre%20en%20Par%C3%ADs%20-%20En%20directo%201991.mp3',
+    'https://archive.org/download/rock-pop_20261006/Los%20Fabulosos%20Cadillacs%20-%20Calaveras%20y%20Diablitos.mp3',
+    'https://archive.org/download/rock-pop_20261006/Los%20Pericos%20-%20Runaway.mp3',
+    'https://archive.org/download/rock-pop_20261006/Man%C3%A1%20-%20Como%20Te%20Deseo.mp3',
+    'https://archive.org/download/rock-pop_20261006/Man%C3%A1%20-%20Te%20Llor%C3%A9%20Un%20R%C3%ADo%20%281%29.mp3'
+  ]),
+  gaitas: createMusicTrackList([
+    'https://archive.org/download/Gaitas-Venezuela/Alianza%20FT%20Luis%20silva%20-%20Amor%20del%20Bueno.mp3',
+    'https://archive.org/download/Gaitas-Venezuela/Alitasia%20-%20Con%20las%20manos%20en%20el%20pecho.mp3',
+    'https://archive.org/download/Gaitas-Venezuela/Astolfo%20Romero%20-%20La%20Florecita.mp3',
+    'https://archive.org/download/Gaitas-Venezuela/Astolfo%20Romero%20-%20Pa%20Morrocoy.mp3',
+    'https://archive.org/download/Gaitas-Venezuela/Betulio%20Medina%20-%20La%20Grey%20Zuliana.mp3',
+    'https://archive.org/download/Gaitas-Venezuela/Betulio%20Medina%20-%20Nunca%20es%20tarde%20para%20amar.mp3',
+    'https://archive.org/download/Gaitas-Venezuela/Cardenales%20del%20Exito%20-%20Amparito.mp3',
+    'https://archive.org/download/Gaitas-Venezuela/Cardenales%20del%20Exito%20-%20El%20Negrito%20Fullero.mp3',
+    'https://archive.org/download/Gaitas-Venezuela/Cardenales%20del%20Exito%20-%20Entre%20Palos%20y%20Alegria.mp3',
+    'https://archive.org/download/Gaitas-Venezuela/Cardenales%20del%20Exito%20-%20Huele%20a%20Navidad.mp3',
+    'https://archive.org/download/Gaitas-Venezuela/Gran%20Coquivacoa%20-%20Sin%20Rencor.mp3',
+    'https://archive.org/download/Gaitas-Venezuela/Joselo%20Diaz%20-%20Las%20Gaitas%20de%20Joselito.mp3'
+  ]),
+  cantosLlano: createMusicTrackList([
+    'https://archive.org/download/cantos-del-llano/Cecilia%20Todd%20-%20Canto%20de%20Ganado.mp3',
+    'https://archive.org/download/cantos-del-llano/Simon%20Diaz%20-%20Canto%20de%20Ordeno.mp3',
+    'https://archive.org/download/cantos-del-llano/Simon%20Diaz%20-%20Tonada%20De%20Luna%20Llena.mp3',
+    'https://archive.org/download/cantos-del-llano/Simon%20Diaz%20-%20Tonada%20del%20Cabrestero.mp3',
+    'https://archive.org/download/cantos-del-llano/Venezuela%20Musica%20y%20Trabajo%20-%20Canto%20de%20Arreo.mp3',
+    'https://archive.org/download/cantos-del-llano/Venezuela%20Musica%20y%20Trabajo%20-%20Canto%20de%20Trillar%20Cafe.mp3',
+    'https://archive.org/download/cantos-del-llano/Vidal%20Colmenares%20-%20Nube%20de%20Agua%281%29.mp3'
+  ]),
+  joropoCentral: createMusicTrackList([
+    'https://archive.org/download/joropo-central/Alejandrina%20Martinez%20-%20Dame%20Un%20Besito.mp3',
+    'https://archive.org/download/joropo-central/Alejandro%20Ribas%20y%20Felix%20Molina%20-%20El%20Guayabo%20Lloron.mp3',
+    'https://archive.org/download/joropo-central/Ana%20Oropeza%20y%20Yustardi%20Laza%20-%20Soy%20feliz%20con%20mi%20esposo.mp3',
+    'https://archive.org/download/joropo-central/Brigido%20Rios%20-%20El%20Casi%20El%20Muerto.mp3',
+    'https://archive.org/download/joropo-central/Cruz%20Tenepe%20-%20Loquito%20de%20amor%20%28en%20el%20arpa%20Ridell%20Castro%29.mp3',
+    'https://archive.org/download/joropo-central/Eustiquio%20Ramos%20%28El%20dos%20%20de%20Oro%29%20-%20Esa%20Mujer%20si%20me%20Quiere.mp3',
+    'https://archive.org/download/joropo-central/Eustiquio%20Ramos%20%28El%20dos%20%20de%20Oro%29%20-%20Me%20Llaman%20el%20dos%20de%20Oro.mp3',
+    'https://archive.org/download/joropo-central/Francisco%20Pacheco%20-%20El%20Apreton.mp3',
+    'https://archive.org/download/joropo-central/Fulgencio%20Aquino%20y%20El%20Turpial%20Mirandino%20-%20El%20Refranista.mp3',
+    'https://archive.org/download/joropo-central/Jose%20Delgado%20-%20Liberen%20a%20Prometeo.mp3',
+    'https://archive.org/download/joropo-central/Juancito%20Barrios%20y%20Yustardi%20Laza%20-%20El%20Zapateaito.mp3',
+    'https://archive.org/download/joropo-central/Julio%20Jaramillo%20y%20Dionisio%20Bolivar%20-%20Amanecer%20tuyero.mp3'
+  ]),
+  joropoLlanero: createMusicTrackList([
+    'https://archive.org/download/joropo-llanero/Adilia%20Castillo%20-%20Escucha%20vida%20mia.mp3',
+    'https://archive.org/download/joropo-llanero/Adilia%20Castillo%20-%20Fiesta%20en%20Elorza.mp3',
+    'https://archive.org/download/joropo-llanero/Angel%20Custodio%20Loyola%20-%20Maria%20Laya.mp3',
+    'https://archive.org/download/joropo-llanero/Antonio%20Heredia%20-%20Pasillaneando.mp3',
+    'https://archive.org/download/joropo-llanero/Benito%20Quiros%20-%20El%20Gavilan%20Pico%20Rosado.mp3',
+    'https://archive.org/download/joropo-llanero/Fabiana%20Ochoa%20-%20La%20potra%20zaina.mp3',
+    'https://archive.org/download/joropo-llanero/Freddy%20Salcedo%20-%20La%20Fundadora.mp3',
+    'https://archive.org/download/joropo-llanero/Freddy%20Salcedo%20-%20Viejo%20Soguero.mp3',
+    'https://archive.org/download/joropo-llanero/Ignacio%20Figueredo%20-%20Tonadas.mp3',
+    'https://archive.org/download/joropo-llanero/Jorge%20Guerrero%20-%20Aguacerito%20de%20agosto.mp3',
+    'https://archive.org/download/joropo-llanero/Jorge%20Guerrero%20-%20Anoranzas.mp3',
+    'https://archive.org/download/joropo-llanero/Jorge%20Guerrero%20-%20Las%20Tardes%20Grises%20De%20Junio.mp3'
+  ])
+};
+
+// Playlists dinámicos (asignados abajo)
+let playlist = standardMusicPlaylist.slice();
+const podcastList = [
+  { title:'Programa grabado de Asoprovida', artist:'Asoprovida', url:'https://archive.org/download/ProgramaGrabadoDeAsoprovida/Programa%20grabado%20de%20asoprovida.mp3', cover: musicCover },
+  { title:'Podcast: Día de la Juventud', artist:'Asoprovida', url:'https://archive.org/download/ASOPROVIDAPODCASTDIADELAJUVENTUD/ASOPROVIDA-PODCAST%20DIA%20DE%20LA%20JUVENTUD.mp3', cover: musicCover },
+  { title:'Podcast: Leyenda de Florentino y el Diablo', artist:'Asoprovida', url:'https://archive.org/download/ASOPROVIDAPODCASTLEYENDADEFLORENTINOYELDIABLO/ASOPROVIDA-PODCAST-LEYENDA%20DE%20FLORENTINO%20YEL%20DIABLO.mp3', cover: musicCover },
+  { title:'Podcast 2: Guardianes de la Vida', artist:'Asoprovida', url:'https://archive.org/download/AsoprovidaPodcast2GuardianesDeLaVida1/asoprovida%20podcast-2-guardianes%20de%20la%20%20vida1.mp3', cover: musicCover },
+  { title:'Podcast 3: Los Elementos', artist:'Asoprovida', url:'https://archive.org/download/ASOPROVIDAPODCAST3LOSELEMENTOS/ASOPROVIDA%20PODCAST-3-LOS%20ELEMENTOS.mp3', cover: musicCover }
+];
+
+const microsLists = {
+  asoprovida: [
+    { title:'Programa Grabado Asoprovida', artist:'Viento Sur Radio', url:'https://archive.org/download/ProgramaGrabadoDeAsoprovida/Programa%20grabado%20de%20asoprovida.mp3', cover: musicCover },
+    { title:'Cursos Asoprovida 2', artist:'Viento Sur Radio', url:'https://archive.org/download/micro5_202610/cursos%20asoprovida2.mp3', cover: musicCover },
+    { title:'Mensaje ambiental 1', artist:'Viento Sur Radio', url:'https://archive.org/download/micro5_202610/micro1.mp3', cover: musicCover },
+    { title:'Mensaje ambiental 10', artist:'Viento Sur Radio', url:'https://archive.org/download/micro5_202610/micro10.mp3', cover: musicCover },
+    { title:'Mensaje ambiental 11', artist:'Viento Sur Radio', url:'https://archive.org/download/micro5_202610/micro11.mp3', cover: musicCover },
+    { title:'Mensaje ambiental 12', artist:'Viento Sur Radio', url:'https://archive.org/download/micro5_202610/micro12_.mp3', cover: musicCover },
+    { title:'Mensaje ambiental 13', artist:'Viento Sur Radio', url:'https://archive.org/download/micro5_202610/micro13.mp3', cover: musicCover },
+    { title:'Mensaje ambiental 14', artist:'Viento Sur Radio', url:'https://archive.org/download/micro5_202610/micro14.mp3', cover: musicCover },
+    { title:'Mensaje ambiental 15', artist:'Viento Sur Radio', url:'https://archive.org/download/micro5_202610/micro15.mp3', cover: musicCover },
+    { title:'Mensaje ambiental 16', artist:'Viento Sur Radio', url:'https://archive.org/download/micro5_202610/micro16.mp3', cover: musicCover },
+    { title:'Mensaje ambiental 2', artist:'Viento Sur Radio', url:'https://archive.org/download/micro5_202610/micro2.mp3', cover: musicCover },
+    { title:'Mensaje ambiental 3', artist:'Viento Sur Radio', url:'https://archive.org/download/micro5_202610/micro3.mp3', cover: musicCover },
+    { title:'Mensaje ambiental 4', artist:'Viento Sur Radio', url:'https://archive.org/download/micro5_202610/micro4.mp3', cover: musicCover },
+    { title:'Mensaje ambiental 5', artist:'Viento Sur Radio', url:'https://archive.org/download/micro5_202610/micro5.mp3', cover: musicCover },
+    { title:'Mensaje ambiental 7', artist:'Viento Sur Radio', url:'https://archive.org/download/micro5_202610/micro7.mp3', cover: musicCover },
+    { title:'Mensaje ambiental 8', artist:'Viento Sur Radio', url:'https://archive.org/download/micro5_202610/micro8.mp3', cover: musicCover },
+    { title:'Mensaje ambiental 9', artist:'Viento Sur Radio', url:'https://archive.org/download/micro5_202610/micro9.mp3', cover: musicCover },
+    { title:'Qué es Asoprovida', artist:'Viento Sur Radio', url:'https://archive.org/download/micro5_202610/que%20es%20asoprovida.mp3', cover: musicCover }
+  ],
+  consejos_comunales: [
+    { title:'Cómo se conforma un Consejo Comunal', artist:'Viento Sur Radio', url:'https://archive.org/download/irfa-centro-gumilla-proyecto-comunitario/IRFA-CENTRO_GUMILLA_-_como_se_conforma_un_consejo_comunal.mp3', cover: musicCover },
+    { title:'Participación ciudadana', artist:'Viento Sur Radio', url:'https://archive.org/download/irfa-centro-gumilla-proyecto-comunitario/IRFA-CENTRO_GUMILLA_-_participacion_ciudadana.mp3', cover: musicCover },
+    { title:'Pide un deseo para tu comunidad', artist:'Viento Sur Radio', url:'https://archive.org/download/irfa-centro-gumilla-proyecto-comunitario/IRFA-CENTRO_GUMILLA_-_pide_un_deseo_para_tu_comunidad.mp3', cover: musicCover },
+    { title:'Proyecto comunitario', artist:'Viento Sur Radio', url:'https://archive.org/download/irfa-centro-gumilla-proyecto-comunitario/IRFA-CENTRO_GUMILLA_-_proyecto_comunitario.mp3', cover: musicCover },
+    { title:'¿Qué es el poder popular?', artist:'Viento Sur Radio', url:'https://archive.org/download/irfa-centro-gumilla-proyecto-comunitario/IRFA-CENTRO_GUMILLA_-_que_es_el_poder_popular.mp3', cover: musicCover },
+    { title:'Estructura interna de los consejos comunales', artist:'Viento Sur Radio', url:'https://archive.org/download/irfa-centro-gumilla-proyecto-comunitario/IRFA_CENTRO_GUMILLA_estructura_interna_de_los_consejos_comunales.mp3', cover: musicCover },
+    { title:'La organización comunitaria es fundamental', artist:'Viento Sur Radio', url:'https://archive.org/download/irfa-centro-gumilla-proyecto-comunitario/IRFA_CENTRO_GUMILLA_la_organizacion_comunitaria_es_fundamental.mp3', cover: musicCover },
+    { title:'Las voces organizadas se oyen mucho mejor', artist:'Viento Sur Radio', url:'https://archive.org/download/irfa-centro-gumilla-proyecto-comunitario/IRFA_CENTRO_GUMILLA_las_voces_organizadas_se_oyen_mucho_mejor.mp3', cover: musicCover },
+    { title:'Testimonio: Ley de los consejos comunales', artist:'Viento Sur Radio', url:'https://archive.org/download/irfa-centro-gumilla-proyecto-comunitario/IRFA_CENTRO_GUMILLA_testimonio_Ley_de_los_consejos_comunales.mp3', cover: musicCover }
+  ],
+  micros_culturales: [],
+  eduardo_galeano: [],
+  chefe_radiofonico: [
+    { title:'3.ª receta: Calabacines gratinados', artist:'Viento Sur Radio', url:'https://archive.org/download/receta-salsa-al-pesto/3ERA-RECETA-CALABACINES-GRATINADOS.mp3', cover: musicCover },
+    { title:'Albóndigas de quinoa', artist:'Viento Sur Radio', url:'https://archive.org/download/receta-salsa-al-pesto/ALBONDIGAS-DE-QUINOA-LISTA.mp3', cover: musicCover },
+    { title:'Arepas de auyama', artist:'Viento Sur Radio', url:'https://archive.org/download/receta-salsa-al-pesto/AREPAS-DE-AHUYAMA-LISTA.mp3', cover: musicCover },
+    { title:'Canelones de calabacín', artist:'Viento Sur Radio', url:'https://archive.org/download/receta-salsa-al-pesto/CANELONES-DE-CALABAC%C3%8DN-LISTA.mp3', cover: musicCover },
+    { title:'Ensalada estrella fugaz', artist:'Viento Sur Radio', url:'https://archive.org/download/receta-salsa-al-pesto/ENSALADA-ESTRELLA-FUGAZ-LISTA.mp3', cover: musicCover },
+    { title:'Flan de auyama', artist:'Viento Sur Radio', url:'https://archive.org/download/receta-salsa-al-pesto/FLAN-DE-AHUYAMA-LISTO.mp3', cover: musicCover },
+    { title:'Galletas de avena con cambur', artist:'Viento Sur Radio', url:'https://archive.org/download/receta-salsa-al-pesto/GALLETAS-DE-AVENA-CON-CAMBUR-MODIFICADA.mp3', cover: musicCover },
+    { title:'Mermelada de chayota', artist:'Viento Sur Radio', url:'https://archive.org/download/receta-salsa-al-pesto/MERMELADA-DE-CHAYOTA.mp3', cover: musicCover },
+    { title:'Panquecas de cambur sin harina', artist:'Viento Sur Radio', url:'https://archive.org/download/receta-salsa-al-pesto/PANQUECAS-DE-CAMBUR-SIN-HARINA-1.mp3', cover: musicCover },
+    { title:'Picadillo de berenjena', artist:'Viento Sur Radio', url:'https://archive.org/download/receta-salsa-al-pesto/PICADILLO-DE-BERENJENA.mp3', cover: musicCover },
+    { title:'Margarina de zanahoria', artist:'Viento Sur Radio', url:'https://archive.org/download/receta-salsa-al-pesto/RECETA-MARGARINA-DE-ZANAHORIA-LISTA.mp3', cover: musicCover },
+    { title:'Salsa al pesto', artist:'Viento Sur Radio', url:'https://archive.org/download/receta-salsa-al-pesto/RECETA-SALSA-AL-PESTO.mp3', cover: musicCover }
+  ],
+  software_libre: [],
+  poesia: [
+    { title:'Alí Primera - Aquiles Nazoa (Balada de Hans y Jenny)', artist:'Viento Sur Radio', url:'https://archive.org/download/ali-primera-aquiles-nazoa-la-historia-de-un-caballo-que-era-bien/Al%C3%AD%20Primera-AquilesNazoa-%20%28nalada%20de%20hans%20y%20jenny%29.mp3', cover: musicCover },
+    { title:'Alí Primera - Aquiles Nazoa (La historia de un caballo que era bien)', artist:'Viento Sur Radio', url:'https://archive.org/download/ali-primera-aquiles-nazoa-la-historia-de-un-caballo-que-era-bien/Al%C3%AD_Primera_AquilesNazoa_la_historia_de_un_caballo_que_era_bien.mp3', cover: musicCover },
+    { title:'Julio Cortázar - Elecciones insólitas', artist:'Viento Sur Radio', url:'https://archive.org/download/ali-primera-aquiles-nazoa-la-historia-de-un-caballo-que-era-bien/Julio_Cortazar--Elecciones_Insolitas.mp3', cover: musicCover },
+    { title:'Julio Cortázar - Las buenas inversiones', artist:'Viento Sur Radio', url:'https://archive.org/download/ali-primera-aquiles-nazoa-la-historia-de-un-caballo-que-era-bien/Julio_Cortazar-Las_Buenas_Inversiones.mp3', cover: musicCover },
+    { title:'Te quiero - Facundo Cabral', artist:'Viento Sur Radio', url:'https://archive.org/download/ali-primera-aquiles-nazoa-la-historia-de-un-caballo-que-era-bien/Te%20quiero%20-%20Facundo%20Cabral.mp3', cover: musicCover },
+    { title:'A la izquierda del redoble - Mario Benedetti', artist:'Viento Sur Radio', url:'https://archive.org/download/ali-primera-aquiles-nazoa-la-historia-de-un-caballo-que-era-bien/al%20izquierda%20del%20redoble-mario%20benedetti.mp3', cover: musicCover },
+    { title:'Cuando los enamorados - Facundo Cabral', artist:'Viento Sur Radio', url:'https://archive.org/download/ali-primera-aquiles-nazoa-la-historia-de-un-caballo-que-era-bien/cuando%20los%20enamorados-facundo%20cabral.mp3', cover: musicCover },
+    { title:'Al perderte yo a ti - Ernesto Cardenal', artist:'Viento Sur Radio', url:'https://archive.org/download/ali-primera-aquiles-nazoa-la-historia-de-un-caballo-que-era-bien/ernesto%20cardenal.%20al%20perderte%20yo%20a%20ti.mp3', cover: musicCover },
+    { title:'La culpa es de uno - Mario Benedetti', artist:'Viento Sur Radio', url:'https://archive.org/download/ali-primera-aquiles-nazoa-la-historia-de-un-caballo-que-era-bien/mario%20benedetti%20la%20culpa%20es%20de%20uno.mp3', cover: musicCover },
+    { title:'Mucho más grave - Mario Benedetti', artist:'Viento Sur Radio', url:'https://archive.org/download/ali-primera-aquiles-nazoa-la-historia-de-un-caballo-que-era-bien/mucho%20mas%20grave-mario%20benedetti.mp3', cover: musicCover },
+    { title:'Puedo escribir los besos más tristes - Pablo Neruda', artist:'Viento Sur Radio', url:'https://archive.org/download/ali-primera-aquiles-nazoa-la-historia-de-un-caballo-que-era-bien/puedo%20escribir%20los%20besos%20mas%20tristes.%20pablo%20neruda.mp3', cover: musicCover }
+  ]
+};
+
+// ============================================================
+// ESTADO
+// ============================================================
+let currentMode = 'playlist';
+let currentMicroKey = '';
+let currentTrackIndex = 0;
+let isPlaying = false;
+let shuffleEnabled = false;
+let repeatMode = 0;
+let shuffleHistory = [];
+let shuffleFuture = [];
+let playNextQueue = [];
+let queueResumeIndex = null;
+let completedTracksSinceRadioBreak = 0;
+let interTrackAnnouncementToken = 0;
+let radioIdentificationActive = false;
+let radioIdentificationCompletion = null;
+let timeAnnouncementActive = false;
+let resumeEnabled = false;
+let pendingResumeTime = null;
+let streamStatus = 'idle';
+let streamStatusTimer = null;
+let streamRetryTimer = null;
+const playbackStateKey = 'viento-sur-radio-playback';
+
+// DOM
+const $ = id => document.getElementById(id);
+const audio = $('audio-stream');
+const popup = $('radio-popup-overlay');
+const miniBar = $('radio-mini-bar');
+const mainPlayButton = $('main-play-btn');
+const mainPlayIcon = $('main-play-icon');
+const miniPlayIcon = $('mini-play-icon');
+const miniPlayButton = $('mini-play-btn');
+const trackTitle = $('track-title');
+const trackArtist = $('track-artist');
+const trackCover = $('track-cover');
+const miniTitle = $('mini-title');
+const miniArtist = $('mini-artist');
+const miniCover = $('mini-cover');
+const progressFill = $('progress-fill');
+const miniProgressFill = $('mini-progress-fill');
+const currentTimeLabel = $('current-time');
+const totalTimeLabel = $('total-time');
+const headerTopTitle = $('header-top-title');
+const tagLabel = $('tag-label');
+const dropdownMenu = $('radio-dropdown');
+const radioAboutPanel = $('radio-about-panel');
+const playlistPanel = $('playlist-overlay-panel');
+const playlistContainer = $('playlist-items-container');
+const panelTitle = $('panel-title');
+const playlistOpenButton = $('playlist-open-button');
+const streamButton = document.querySelector('.stream-button');
+const nextTrackButton = $('next-track-button');
+const shuffleButton = $('shuffle-toggle');
+const repeatButton = $('repeat-toggle');
+
+const playSvg = '<polygon points="6 4 20 12 6 20"/>';
+const pauseSvg = '<rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>';
+const nextTrackSvg = '<polygon points="4,5 15,12 4,19"/><rect height="14" rx="1" width="2.5" x="17.5" y="5"/>';
+const fallbackTrackSvg = '<polygon points="7 4 20 12 7 20"/>';
+
+// ============================================================
+// UTILIDADES
+// ============================================================
+function getCurrentActiveList() {
+  if (currentMode === 'podcast') return podcastList;
+  if (currentMode === 'micros' && currentMicroKey) return microsLists[currentMicroKey] || [];
+  return playlist;
+}
+
+function shuffleArray(array) {
+  const shuffled = array.slice();
+  for (let i = shuffled.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
+function shuffledTrackIndexes(excludedIndex) {
+  return getCurrentActiveList().map((_, i) => i).filter(i => i !== excludedIndex)
+    .sort(() => Math.random() - 0.5);
+}
+
+function resetShuffleQueue() {
+  shuffleHistory = [];
+  shuffleFuture = shuffledTrackIndexes(currentTrackIndex);
+}
+
+function clearPlayNextQueue() { playNextQueue = []; queueResumeIndex = null; }
+
+// ============================================================
+// UPDATE TAG
+// ============================================================
+function updateNowPlayingTag(trackName) {
+  const tagWrap = tagLabel.closest('.radio-tag');
+  if (currentMode === 'streaming') {
+    const labels = { idle:'LIVE', connecting:'Conectando…', live:'LIVE', noSignal:'Sin señal', offline:'Sin conexión' };
+    const classes = ['status-connecting','status-live','status-no-signal','status-offline'];
+    tagLabel.innerText = labels[streamStatus] || labels.idle;
+    if (tagWrap) {
+      classes.forEach(c => tagWrap.classList.remove(c));
+      if (streamStatus !== 'idle' && streamStatus !== 'live') {
+        tagWrap.classList.add(streamStatus === 'noSignal' ? 'status-no-signal' : 'status-' + streamStatus);
+      } else if (streamStatus === 'live') {
+        tagWrap.classList.add('status-live');
+      }
+    }
+    const fb = streamStatus === 'noSignal' || streamStatus === 'offline';
+    nextTrackButton.classList.toggle('stream-fallback', fb);
+    const ni = nextTrackButton.querySelector('svg');
+    if (ni) ni.innerHTML = fb ? fallbackTrackSvg : nextTrackSvg;
+    nextTrackButton.setAttribute('aria-label', fb ? 'Sin señal. Escuchar selección musical' : 'Siguiente pista');
+  } else {
+    tagLabel.innerText = 'SONANDO';
+    if (tagWrap) classesRemove(tagWrap);
+    nextTrackButton.classList.remove('stream-fallback');
+    const ni = nextTrackButton.querySelector('svg');
+    if (ni) ni.innerHTML = nextTrackSvg;
+    nextTrackButton.setAttribute('aria-label', 'Siguiente pista');
+  }
+  if (tagWrap) {
+    const hasStreamStatus = currentMode === 'streaming' && streamStatus !== 'idle';
+    tagWrap.classList.toggle('visible', isPlaying || hasStreamStatus);
+  }
+}
+function classesRemove(el) {
+  ['status-connecting','status-live','status-no-signal','status-offline'].forEach(c => el.classList.remove(c));
+}
+
+// ============================================================
+// LOAD TRACK
+// ============================================================
+function loadTrack(index) {
+  const activeList = getCurrentActiveList();
+  if (!activeList || activeList.length === 0) return;
+  pendingResumeTime = null;
+  currentTrackIndex = index;
+  const track = activeList[currentTrackIndex];
+  audio.src = track.url;
+  trackTitle.innerText = track.title;
+  trackArtist.innerText = track.artist;
+  trackCover.src = track.cover;
+  miniTitle.innerText = track.title;
+  miniArtist.innerText = track.artist;
+  miniCover.src = track.cover;
+  updateNowPlayingTag(track.title);
+  progressFill.style.width = '0%';
+  miniProgressFill.style.width = '0%';
+  currentTimeLabel.innerText = '0:00';
+  totalTimeLabel.innerText = '0:00';
+  renderListItems();
+  checkOfflineState();
+}
+
+// ============================================================
+// RENDER LIST
+// ============================================================
+function renderListItems() {
+  playlistContainer.innerHTML = '';
+  const activeList = getCurrentActiveList();
+  if (currentMode === 'podcast') panelTitle.innerText = 'Episodios de Podcast';
+  else if (currentMode === 'micros') panelTitle.innerText = headerTopTitle.innerText;
+  else panelTitle.innerText = 'Selección Musical';
+
+  if (activeList.length === 0) {
+    playlistContainer.innerHTML = '<div style="color:#b3b3b3;font-size:14px;text-align:center;padding:20px 0;">Próximamente se agregarán micros a esta sección.</div>';
+    return;
+  }
+  activeList.forEach((track, index) => {
+    const item = document.createElement('div');
+    item.className = 'playlist-item' + (index === currentTrackIndex ? ' active' : '');
+    item.onclick = function (event) {
+      event.stopPropagation();
+      loadTrack(index);
+      if (!shuffleEnabled && playNextQueue.length > 0) {
+        queueResumeIndex = repeatMode === 1 ? (index + 1) % activeList.length : index + 1;
+      }
+      if (shuffleEnabled) resetShuffleQueue();
+      if (!isPlaying) togglePlay();
+      else audio.play();
+      closePlaylistPanel();
+    };
+    const cover = document.createElement('img');
+    cover.className = 'playlist-item-cover';
+    cover.src = track.cover || trackCover.src;
+    cover.alt = 'Portada de ' + track.title;
+    cover.loading = 'lazy';
+    const info = document.createElement('div');
+    info.className = 'playlist-item-info';
+    const title = document.createElement('div');
+    title.className = 'playlist-item-title';
+    title.innerText = track.title;
+    const artist = document.createElement('div');
+    artist.className = 'playlist-item-artist';
+    artist.innerText = track.artist;
+    info.appendChild(title);
+    info.appendChild(artist);
+    const queueButton = document.createElement('button');
+    queueButton.className = 'queue-next-button';
+    queueButton.type = 'button';
+    queueButton.setAttribute('aria-label', 'Reproducir a continuación');
+    queueButton.title = 'Reproducir a continuación';
+    queueButton.innerHTML = '<svg fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24" width="20"><path d="M4 6h16M4 12h9M4 18h9"/><path d="M19 14v7m-3.5-3.5h7"/></svg>';
+    queueButton.addEventListener('click', function (event) {
+      event.stopPropagation();
+      if (playNextQueue.indexOf(index) !== -1) return;
+      if (playNextQueue.length === 0 && !shuffleEnabled) {
+        queueResumeIndex = repeatMode === 1 ? (currentTrackIndex + 1) % activeList.length : currentTrackIndex + 1;
+      }
+      playNextQueue.push(index);
+      queueButton.classList.add('is-added');
+    });
+    item.appendChild(cover);
+    item.appendChild(info);
+    item.appendChild(queueButton);
+    playlistContainer.appendChild(item);
+  });
+}
+
+// ============================================================
+// MENÚ
+// ============================================================
+function toggleOptionsMenu(event) {
+  if (event) event.stopPropagation();
+  dropdownMenu.classList.toggle('show');
+}
+function closeOptionsMenu() {
+  dropdownMenu.classList.remove('show');
+  $('micros-submenu')?.classList.remove('show');
+  $('music-submenu')?.classList.remove('show');
+}
+function toggleSubmenu(event, submenuId) {
+  if (event) event.stopPropagation();
+  const submenu = $(submenuId);
+  if (submenu) {
+    const otherId = submenuId === 'music-submenu' ? 'micros-submenu' : 'music-submenu';
+    $(otherId)?.classList.remove('show');
+    submenu.classList.toggle('show');
+  }
+}
+
+// ============================================================
+// PANELES
+// ============================================================
+function closeRadioAbout() { radioAboutPanel.classList.remove('show'); }
+function closePlaylistPanel() { playlistPanel.classList.remove('show'); }
+function openRadioAbout() { closePlaylistPanel(); radioAboutPanel.classList.add('show'); }
+function openCurrentPlaylist() {
+  if (currentMode === 'streaming') return;
+  closeRadioAbout();
+  renderListItems();
+  playlistPanel.classList.add('show');
+}
+
+// ============================================================
+// SELECCIÓN
+// ============================================================
+function selectMenuOption(option) {
+  closeOptionsMenu();
+  closeRadioAbout();
+  closePlaylistPanel();
+  playlist = standardMusicPlaylist.slice();
+
+  if (option === 'podcast') {
+    if (podcastList.length === 0) { alert('No hay episodios de podcast disponibles.'); return; }
+    clearStreamStatusTimer();
+    clearStreamRetryTimer();
+    clearPlayNextQueue();
+    currentMode = 'podcast';
+    streamStatus = 'idle';
+    streamButton.style.display = 'flex';
+    playlistOpenButton.style.display = 'flex';
+    headerTopTitle.innerText = 'PODCAST';
+    updateNowPlayingTag(getCurrentActiveList()[currentTrackIndex]?.title || '');
+    loadTrack(0);
+    if (shuffleEnabled) resetShuffleQueue();
+    playlistPanel.classList.add('show');
+  } else if (option === 'streaming') {
+    clearStreamStatusTimer();
+    clearStreamRetryTimer();
+    clearPlayNextQueue();
+    currentMode = 'streaming';
+    streamStatus = 'idle';
+    streamButton.style.display = 'none';
+    playlistOpenButton.style.display = 'none';
+    closeRadioAbout();
+    headerTopTitle.innerText = 'LIVE STREAMING';
+    updateNowPlayingTag();
+    trackTitle.innerText = 'Emisión En Vivo';
+    trackArtist.innerText = 'Viento Sur Radio';
+    miniTitle.innerText = 'Emisión En Vivo';
+    miniArtist.innerText = 'Viento Sur Radio';
+    trackCover.src = radioArtworkUrl;
+    miniCover.src = radioArtworkUrl;
+    audio.src = liveStreamUrl;
+    if (isPlaying) startPlayback();
+    else updateNowPlayingTag();
+    checkOfflineState();
+  } else if (option === 'salir') {
+    closeRadioPlayer();
+  }
+}
+
+function selectMusicGenre(genreKey) {
+  const genreTracks = musicGenreLists[genreKey];
+  const genreLabel = musicGenreLabels[genreKey];
+  if (!genreTracks || !genreLabel) { console.error('Género no disponible:', genreKey); return; }
+  cancelInterTrackAnnouncement();
+  completedTracksSinceRadioBreak = 0;
+  closeOptionsMenu();
+  closeRadioAbout();
+  closePlaylistPanel();
+  clearStreamStatusTimer();
+  clearStreamRetryTimer();
+  clearPlayNextQueue();
+  currentMode = 'playlist';
+  currentMicroKey = '';
+  streamStatus = 'idle';
+  streamButton.style.display = 'flex';
+  playlistOpenButton.style.display = 'flex';
+  headerTopTitle.innerText = 'SELECCIÓN MUSICAL: ' + genreLabel.toUpperCase();
+  tagLabel.innerText = genreLabel;
+  playlist = shuffleArray(genreTracks);
+  loadTrack(0);
+  if (shuffleEnabled) resetShuffleQueue();
+  startPlayback();
+}
+
+function selectMusicCollection(collectionKey) {
+  const collections = {
+    fusion: { archiveId: 'fusion_202610', label: 'RitmoFusión' },
+    romanticas: { archiveId: 'romantica-venezuela', label: 'Románticas Vzla' },
+    calipso: { archiveId: 'calipso_202610', label: 'Calipso' },
+    navidena: { archiveId: 'musicanavidena_202610', label: 'Música Navideña' },
+    oriental: { archiveId: 'oriental-vzla_202610', label: 'Oriental Vzla' },
+    tambores: { archiveId: 'tambores_202610', label: 'Tambores Vzla' },
+    merengue: { archiveId: 'merengue-venezolano_202610', label: 'Merengue Venezolano' },
+    social: { archiveId: 'cancion-social', label: 'Música Social' },
+    folclor: { archiveId: 'tradicional-venezuela', label: 'Tradicional Vzla' }
+  };
+  const collection = collections[collectionKey];
+  if (!collection) return;
+  closeOptionsMenu();
+  closeRadioAbout();
+  fetchArchiveMusicTracks(collection.archiveId).then(tracks => {
+    cancelInterTrackAnnouncement();
+    completedTracksSinceRadioBreak = 0;
+    closeOptionsMenu();
+    closeRadioAbout();
+    closePlaylistPanel();
+    clearStreamStatusTimer();
+    clearStreamRetryTimer();
+    clearPlayNextQueue();
+    currentMode = 'playlist';
+    currentMicroKey = '';
+    streamStatus = 'idle';
+    streamButton.style.display = 'flex';
+    playlistOpenButton.style.display = 'flex';
+    headerTopTitle.innerText = 'SELECCIÓN MUSICAL: ' + collection.label.toUpperCase();
+    tagLabel.innerText = collection.label;
+    playlist = tracks;
+    loadTrack(0);
+    if (shuffleEnabled) resetShuffleQueue();
+    startPlayback();
+  }).catch(err => {
+    console.error('No se pudo cargar ' + collection.label, err);
+    panelTitle.innerText = collection.label;
+    playlistContainer.innerText = 'No se pudo cargar ' + collection.label + '. Revisa tu conexión e inténtalo de nuevo.';
+    playlistPanel.classList.add('show');
+  });
+}
+
+function selectMicroOption(microKey) {
+  cancelInterTrackAnnouncement();
+  completedTracksSinceRadioBreak = 0;
+  closeOptionsMenu();
+  closeRadioAbout();
+  closePlaylistPanel();
+  playlist = standardMusicPlaylist.slice();
+  clearStreamStatusTimer();
+  clearStreamRetryTimer();
+  clearPlayNextQueue();
+  currentMode = 'micros';
+  streamStatus = 'idle';
+  streamButton.style.display = 'flex';
+  playlistOpenButton.style.display = 'flex';
+  currentMicroKey = microKey;
+
+  const titles = {
+    asoprovida: 'MICROS: ASOPROVIDA',
+    consejos_comunales: 'MICROS: CONSEJOS COMUNALES',
+    micros_culturales: 'MICROS: CULTURALES',
+    eduardo_galeano: 'MICROS: EDUARDO GALEANO',
+    chefe_radiofonico: 'MICROS: CHEF RADIOFÓNICO',
+    software_libre: 'MICROS: SOFTWARE LIBRE',
+    poesia: 'MICROS: POESÍA'
+  };
+  const labels = {
+    asoprovida: 'Asoprovida', consejos_comunales: 'Consejos Comunales',
+    micros_culturales: 'Micros Culturales', eduardo_galeano: 'Eduardo Galeano',
+    chefe_radiofonico: 'Chef Radiofónico', software_libre: 'Software Libre', poesia: 'Poesía'
+  };
+  headerTopTitle.innerText = titles[microKey] || 'MICROS RADIALES';
+  tagLabel.innerText = labels[microKey] || 'Micros Radiales';
+  const list = microsLists[microKey] || [];
+  if (list.length > 0) {
+    loadTrack(0);
+    if (shuffleEnabled) resetShuffleQueue();
+  }
+  playlistPanel.classList.add('show');
+}
+
+// ============================================================
+// PLAYBACK
+// ============================================================
+function togglePlay(event) {
+  if (event) event.stopPropagation();
+  if (isPlaying) {
+    clearStreamStatusTimer();
+    clearStreamRetryTimer();
+    audio.pause();
+    mainPlayIcon.innerHTML = playSvg;
+    miniPlayIcon.innerHTML = playSvg;
+    mainPlayButton.setAttribute('aria-label', 'Reproducir');
+    miniPlayButton.setAttribute('aria-label', 'Reanudar reproducción');
+    isPlaying = false;
+    if (currentMode === 'streaming') streamStatus = 'idle';
+    updateNowPlayingTag();
+  } else {
+    startPlayback();
+  }
+}
+
+function startPlayback() {
+  if (currentMode === 'streaming') beginStreamConnection();
+  audio.play().then(function () {
+    mainPlayIcon.innerHTML = pauseSvg;
+    miniPlayIcon.innerHTML = pauseSvg;
+    mainPlayButton.setAttribute('aria-label', 'Pausar');
+    miniArtist.innerText = trackArtist.innerText;
+    miniPlayButton.setAttribute('aria-label', 'Pausar reproducción');
+    isPlaying = true;
+    resumeEnabled = true;
+    updateNowPlayingTag();
+  }).catch(function (error) {
+    console.error('No se pudo iniciar la reproducción:', error);
+    if (currentMode === 'streaming') markStreamUnavailable(navigator.onLine ? 'noSignal' : 'offline');
+  });
+}
+
+function nextTrack() {
+  cancelInterTrackAnnouncement();
+  if (currentMode === 'streaming') {
+    audio.pause();
+    isPlaying = false;
+    selectRandomMusicGenre();
+    return;
+  }
+  const activeList = getCurrentActiveList();
+  if (activeList.length === 0) return;
+  if (playNextQueue.length > 0) {
+    const q = playNextQueue.shift();
+    currentTrackIndex = q;
+  } else if (shuffleEnabled) {
+    if (shuffleFuture.length === 0) resetShuffleQueue();
+    if (shuffleFuture.length > 0) {
+      shuffleHistory.push(currentTrackIndex);
+      currentTrackIndex = shuffleFuture.shift();
+    }
+  } else {
+    currentTrackIndex = (currentTrackIndex + 1) % activeList.length;
+  }
+  loadTrack(currentTrackIndex);
+  if (isPlaying) audio.play();
+}
+
+function prevTrack() {
+  cancelInterTrackAnnouncement();
+  const activeList = getCurrentActiveList();
+  if (activeList.length === 0) return;
+  if (shuffleEnabled && shuffleHistory.length > 0) {
+    shuffleFuture.unshift(currentTrackIndex);
+    currentTrackIndex = shuffleHistory.pop();
+  } else {
+    currentTrackIndex = (currentTrackIndex - 1 + activeList.length) % activeList.length;
+    if (shuffleEnabled) resetShuffleQueue();
+  }
+  loadTrack(currentTrackIndex);
+  if (isPlaying) audio.play();
+}
+
+function selectRandomMusicGenre() {
+  const options = Object.keys(musicGenreLists);
+  if (options.length === 0) return;
+  selectMusicGenre(options[Math.floor(Math.random() * options.length)]);
+}
+
+// ============================================================
+// STREAM
+// ============================================================
+function clearStreamStatusTimer() { if (streamStatusTimer !== null) { clearTimeout(streamStatusTimer); streamStatusTimer = null; } }
+function clearStreamRetryTimer() { if (streamRetryTimer !== null) { clearTimeout(streamRetryTimer); streamRetryTimer = null; } }
+function setStreamStatus(status) { streamStatus = status; updateNowPlayingTag(); }
+function beginStreamConnection() {
+  clearStreamStatusTimer();
+  clearStreamRetryTimer();
+  setStreamStatus(navigator.onLine ? 'connecting' : 'offline');
+  if (!navigator.onLine) return;
+  streamStatusTimer = setTimeout(function () {
+    streamStatusTimer = null;
+    if (currentMode === 'streaming' && streamStatus === 'connecting') markStreamUnavailable(navigator.onLine ? 'noSignal' : 'offline');
+  }, 12000);
+}
+function scheduleStreamRetry() {
+  if (streamRetryTimer !== null || !navigator.onLine) return;
+  streamRetryTimer = setTimeout(function () {
+    streamRetryTimer = null;
+    if (currentMode !== 'streaming' || streamStatus !== 'noSignal' || !navigator.onLine) return;
+    audio.src = liveStreamUrl;
+    audio.load();
+    startPlayback();
+  }, 30000);
+}
+function markStreamUnavailable(status) {
+  clearStreamStatusTimer();
+  audio.pause();
+  isPlaying = false;
+  mainPlayIcon.innerHTML = playSvg;
+  miniPlayIcon.innerHTML = playSvg;
+  setStreamStatus(status);
+  if (status === 'noSignal') scheduleStreamRetry();
+  else clearStreamRetryTimer();
+}
+
+// ============================================================
+// AUDIO EVENTS
+// ============================================================
+audio.addEventListener('loadedmetadata', function () {
+  if (pendingResumeTime !== null) {
+    audio.currentTime = Math.min(pendingResumeTime, audio.duration || pendingResumeTime);
+    pendingResumeTime = null;
+    currentTimeLabel.innerText = formatTime(audio.currentTime);
+    totalTimeLabel.innerText = formatTime(audio.duration);
+  }
+});
+audio.addEventListener('timeupdate', function () {
+  if (audio.duration) {
+    const p = (audio.currentTime / audio.duration) * 100;
+    progressFill.style.width = p + '%';
+    miniProgressFill.style.width = p + '%';
+    currentTimeLabel.innerText = formatTime(audio.currentTime);
+    totalTimeLabel.innerText = formatTime(audio.duration);
+  }
+});
+audio.addEventListener('playing', function () {
+  if (currentMode !== 'streaming') return;
+  clearStreamStatusTimer();
+  clearStreamRetryTimer();
+  setStreamStatus('live');
+});
+audio.addEventListener('waiting', function () {
+  if (currentMode !== 'streaming' || !isPlaying || streamStatus === 'connecting') return;
+  beginStreamConnection();
+});
+audio.addEventListener('error', function () {
+  if (radioIdentificationActive) { finishRadioIdentification(); return; }
+  if (currentMode !== 'streaming') return;
+  markStreamUnavailable(navigator.onLine ? 'noSignal' : 'offline');
+});
+audio.addEventListener('ended', function () {
+  if (radioIdentificationActive) { finishRadioIdentification(); return; }
+  const activeList = getCurrentActiveList();
+  if (repeatMode === 2) {
+    audio.currentTime = 0;
+    audio.play().catch(() => {});
+    return;
+  }
+  if (playNextQueue.length > 0 || currentTrackIndex < activeList.length - 1 || repeatMode === 1) {
+    nextTrack();
+  }
+});
+
+// ============================================================
+// UTIL
+// ============================================================
+function formatTime(s) {
+  if (isNaN(s)) return '0:00';
+  const m = Math.floor(s / 60);
+  const sec = Math.floor(s % 60);
+  return m + ':' + (sec < 10 ? '0' : '') + sec;
+}
+function seekAudio(event) {
+  const bar = $('progress-bar-bg');
+  const rect = bar.getBoundingClientRect();
+  const x = event.clientX - rect.left;
+  const seek = (x / rect.width) * audio.duration;
+  if (!isNaN(seek)) audio.currentTime = seek;
+}
+
+// ============================================================
+// UI PLAYER
+// ============================================================
+function openRadioPlayer() {
+  popup.style.display = 'flex';
+  miniBar.style.display = 'none';
+  if (!isPlaying) togglePlay();
+}
+function minimizeRadioPlayer() {
+  popup.style.display = 'none';
+  miniBar.style.display = 'block';
+}
+function expandRadioPlayer() {
+  popup.style.display = 'flex';
+  miniBar.style.display = 'none';
+}
+function closeRadioPlayer() {
+  clearStreamStatusTimer();
+  clearStreamRetryTimer();
+  cancelInterTrackAnnouncement();
+  audio.pause();
+  isPlaying = false;
+  if (currentMode === 'streaming') streamStatus = 'idle';
+  mainPlayIcon.innerHTML = playSvg;
+  miniPlayIcon.innerHTML = playSvg;
+  updateNowPlayingTag();
+  popup.style.display = 'none';
+  miniBar.style.display = 'none';
+  closeRadioAbout();
+  closePlaylistPanel();
+}
+
+// ============================================================
+// OFFLINE
+// ============================================================
+async function saveAudioOffline() {
+  const activeList = getCurrentActiveList();
+  if (!activeList || activeList.length === 0) return;
+  const currentTrack = activeList[currentTrackIndex];
+  const key = 'offline_track_' + currentTrack.title.replace(/\s+/g, '_').toLowerCase();
+  const btn = $('save-offline-btn');
+  try {
+    const response = await fetch(currentTrack.url);
+    const blob = await response.blob();
+    const reader = new FileReader();
+    reader.readAsDataURL(blob);
+    reader.onloadend = function () {
+      try {
+        localStorage.setItem(key, JSON.stringify({
+          title: currentTrack.title, artist: currentTrack.artist,
+          cover: currentTrack.cover, audioData: reader.result,
+          savedAt: new Date().toISOString()
+        }));
+        if (btn) {
+          btn.classList.add('animate-save', 'saved-offline');
+          setTimeout(() => btn.classList.remove('animate-save'), 400);
+        }
+      } catch (e) {
+        try {
+          localStorage.setItem(key, JSON.stringify({ title: currentTrack.title, artist: currentTrack.artist, cover: currentTrack.cover, url: currentTrack.url }));
+          if (btn) btn.classList.add('saved-offline');
+        } catch (err) { console.error(err); }
+      }
+    };
+  } catch (err) { console.error('Error offline:', err); }
+}
+function checkOfflineState() {
+  const activeList = getCurrentActiveList();
+  if (!activeList || activeList.length === 0) return;
+  const t = activeList[currentTrackIndex];
+  const key = 'offline_track_' + t.title.replace(/\s+/g, '_').toLowerCase();
+  const btn = $('save-offline-btn');
+  if (btn) {
+    if (localStorage.getItem(key)) btn.classList.add('saved-offline');
+    else btn.classList.remove('saved-offline');
+  }
+}
+
+// ============================================================
+// SHUFFLE / REPEAT
+// ============================================================
+function updateModeButtons() {
+  shuffleButton.classList.toggle('is-active', shuffleEnabled);
+  shuffleButton.setAttribute('aria-pressed', String(shuffleEnabled));
+  const repeatLabels = ['Activar repetición', 'Repetir lista', 'Repetir pista'];
+  repeatButton.classList.toggle('is-active', repeatMode > 0);
+  repeatButton.classList.toggle('repeat-one', repeatMode === 2);
+  repeatButton.setAttribute('aria-pressed', String(repeatMode > 0));
+  repeatButton.setAttribute('aria-label', repeatLabels[repeatMode]);
+  repeatButton.title = repeatLabels[repeatMode];
+}
+function toggleShuffle() {
+  shuffleEnabled = !shuffleEnabled;
+  resetShuffleQueue();
+  updateModeButtons();
+}
+function toggleRepeat() {
+  repeatMode = (repeatMode + 1) % 3;
+  updateModeButtons();
+}
+
+// ============================================================
+// ANNOUNCE / IDENTIFICATION
+// ============================================================
+function announceTime(onComplete) {
+  const spoken = new Intl.DateTimeFormat('es-VE', { hour:'numeric', minute:'2-digit', hour12:true, timeZone:'America/Caracas' }).format(new Date());
+  if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) {
+    trackTitle.innerText = 'Hora de Caracas: ' + spoken;
+    if (onComplete) onComplete();
+    return;
+  }
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance('Hora de Viento Sur: ' + spoken);
+  u.lang = 'es-VE';
+  timeAnnouncementActive = true;
+  let done = false;
+  const finish = () => { if (done) return; done = true; timeAnnouncementActive = false; if (onComplete) onComplete(); };
+  u.onend = finish; u.onerror = finish;
+  window.speechSynthesis.speak(u);
+}
+function cancelInterTrackAnnouncement() {
+  interTrackAnnouncementToken += 1;
+  if (radioIdentificationActive) {
+    radioIdentificationActive = false;
+    radioIdentificationCompletion = null;
+    audio.pause();
+  }
+  if (timeAnnouncementActive && window.speechSynthesis) {
+    timeAnnouncementActive = false;
+    window.speechSynthesis.cancel();
+  }
+}
+function playRadioIdentification(onComplete) {
+  radioIdentificationActive = true;
+  radioIdentificationCompletion = onComplete;
+  audio.src = radioIdentificationUrl;
+  audio.currentTime = 0;
+  audio.play().catch(() => { if (radioIdentificationActive) finishRadioIdentification(); });
+}
+function finishRadioIdentification() {
+  if (!radioIdentificationActive) return;
+  radioIdentificationActive = false;
+  const cb = radioIdentificationCompletion;
+  radioIdentificationCompletion = null;
+  if (cb) cb();
+}
+
+// ============================================================
+// INIT
+// ============================================================
+loadTrack(currentTrackIndex);
+updateModeButtons();
+
+document.addEventListener('click', function (event) {
+  if (dropdownMenu && dropdownMenu.classList.contains('show') && !dropdownMenu.contains(event.target)) {
+    closeOptionsMenu();
+  }
+});
+
+// Expose para onclick inline
+window.openRadioPlayer = openRadioPlayer;
+window.minimizeRadioPlayer = minimizeRadioPlayer;
+window.expandRadioPlayer = expandRadioPlayer;
+window.closeRadioPlayer = closeRadioPlayer;
+window.togglePlay = togglePlay;
+window.nextTrack = nextTrack;
+window.prevTrack = prevTrack;
+window.seekAudio = seekAudio;
+window.toggleOptionsMenu = toggleOptionsMenu;
+window.toggleSubmenu = toggleSubmenu;
+window.selectMenuOption = selectMenuOption;
+window.selectMusicGenre = selectMusicGenre;
+window.selectMusicCollection = selectMusicCollection;
+window.selectMicroOption = selectMicroOption;
+window.closeRadioAbout = closeRadioAbout;
+window.closePlaylistPanel = closePlaylistPanel;
+window.openCurrentPlaylist = openCurrentPlaylist;
+window.saveAudioOffline = saveAudioOffline;
+window.toggleShuffle = toggleShuffle;
+window.toggleRepeat = toggleRepeat;
+window.announceTime = announceTime;
+
+})();
+</script>
+</body>
+</html>
