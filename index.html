@@ -1728,34 +1728,50 @@ function closeRadioPlayer() {
 }
 
 let swipeStart = null;
-popup.addEventListener('pointerdown', function (event) {
-  if (event.pointerType !== 'touch') {
+popup.addEventListener('touchstart', function (event) {
+  if (event.touches.length !== 1) {
     swipeStart = null;
     return;
   }
+  const touch = event.touches[0];
   if (event.target.closest('button,a,input,[role="button"],.radio-progress-bar-container,#playlist-overlay-panel,#radio-about-panel,.radio-dropdown-menu')) {
     swipeStart = null;
     return;
   }
-  swipeStart = { x: event.clientX, y: event.clientY, pointerId: event.pointerId };
+  swipeStart = { x: touch.clientX, y: touch.clientY, scrollTop: popup.scrollTop, claimed: false };
 }, { passive: true });
 
-popup.addEventListener('pointerup', function (event) {
-  if (!swipeStart || event.pointerId !== swipeStart.pointerId) return;
-  const deltaY = event.clientY - swipeStart.y;
-  const deltaX = event.clientX - swipeStart.x;
+popup.addEventListener('touchmove', function (event) {
+  if (!swipeStart || event.touches.length !== 1 || swipeStart.scrollTop > 0) return;
+  const touch = event.touches[0];
+  const deltaY = touch.clientY - swipeStart.y;
+  const deltaX = touch.clientX - swipeStart.x;
+  if (deltaY >= 12 && deltaY > Math.abs(deltaX) * 1.15 && event.cancelable) {
+    event.preventDefault();
+    swipeStart.claimed = true;
+  }
+}, { passive: false });
+
+popup.addEventListener('touchend', function (event) {
+  if (!swipeStart || !swipeStart.claimed || event.changedTouches.length !== 1) {
+    swipeStart = null;
+    return;
+  }
+  const touch = event.changedTouches[0];
+  const deltaY = touch.clientY - swipeStart.y;
+  const deltaX = touch.clientX - swipeStart.x;
   swipeStart = null;
   if (deltaY >= 72 && deltaY > Math.abs(deltaX) * 1.3 && popup.scrollTop <= 0) {
     window.minimizeRadioPlayer();
   }
 }, { passive: true });
 
-popup.addEventListener('pointercancel', function () { swipeStart = null; }, { passive: true });
+popup.addEventListener('touchcancel', function () { swipeStart = null; }, { passive: true });
 
 let miniBarSwipeStart = null;
 let suppressMiniBarClickTimer = null;
-miniBar.addEventListener('pointerdown', function (event) {
-  if (event.pointerType !== 'touch') {
+miniBar.addEventListener('touchstart', function (event) {
+  if (event.touches.length !== 1) {
     miniBarSwipeStart = null;
     return;
   }
@@ -1763,24 +1779,41 @@ miniBar.addEventListener('pointerdown', function (event) {
     miniBarSwipeStart = null;
     return;
   }
-  miniBarSwipeStart = { x: event.clientX, y: event.clientY, pointerId: event.pointerId };
+  const touch = event.touches[0];
+  miniBarSwipeStart = { x: touch.clientX, y: touch.clientY, claimed: false };
 }, { passive: true });
 
-miniBar.addEventListener('pointerup', function (event) {
-  if (!miniBarSwipeStart || event.pointerId !== miniBarSwipeStart.pointerId) return;
-  const deltaY = event.clientY - miniBarSwipeStart.y;
-  const deltaX = event.clientX - miniBarSwipeStart.x;
+miniBar.addEventListener('touchmove', function (event) {
+  if (!miniBarSwipeStart || event.touches.length !== 1) return;
+  const touch = event.touches[0];
+  const deltaY = touch.clientY - miniBarSwipeStart.y;
+  const deltaX = touch.clientX - miniBarSwipeStart.x;
+  if (Math.abs(deltaY) >= 12 && Math.abs(deltaY) > Math.abs(deltaX) * 1.15 && event.cancelable) {
+    event.preventDefault();
+    miniBarSwipeStart.claimed = true;
+  }
+}, { passive: false });
+
+miniBar.addEventListener('touchend', function (event) {
+  if (!miniBarSwipeStart || !miniBarSwipeStart.claimed || event.changedTouches.length !== 1) {
+    miniBarSwipeStart = null;
+    return;
+  }
+  const touch = event.changedTouches[0];
+  const deltaY = touch.clientY - miniBarSwipeStart.y;
+  const deltaX = touch.clientX - miniBarSwipeStart.x;
   miniBarSwipeStart = null;
   if (Math.abs(deltaY) < 72 || Math.abs(deltaY) <= Math.abs(deltaX) * 1.3) return;
 
+  if (event.cancelable) event.preventDefault();
   if (suppressMiniBarClickTimer !== null) clearTimeout(suppressMiniBarClickTimer);
   suppressMiniBarClickTimer = setTimeout(function () {
     suppressMiniBarClickTimer = null;
   }, 500);
   if (deltaY <= -72) window.expandRadioPlayer();
-}, { passive: true });
+}, { passive: false });
 
-miniBar.addEventListener('pointercancel', function () { miniBarSwipeStart = null; }, { passive: true });
+miniBar.addEventListener('touchcancel', function () { miniBarSwipeStart = null; }, { passive: true });
 miniBar.addEventListener('click', function (event) {
   if (suppressMiniBarClickTimer === null) return;
   clearTimeout(suppressMiniBarClickTimer);
