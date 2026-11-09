@@ -351,9 +351,7 @@ html,body{height:100%;overflow:hidden;background:transparent;color:#fff;
   .library-main{min-width:0;min-height:0;overflow-y:auto;overscroll-behavior:contain;border-radius:8px;
     background:linear-gradient(180deg,#244b48 0,#173330 260px,#121212 520px);padding:24px clamp(18px,4vw,48px) 36px}
   .library-topbar{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:28px}
-  .library-topbar-actions{display:flex;align-items:center;gap:10px}
-  .library-round-button{width:34px;height:34px;border:0;border-radius:50%;background:rgba(0,0,0,.65);
-    color:#fff;display:grid;place-items:center;cursor:pointer}
+  .library-topbar-actions{display:flex;align-items:center}
   .library-search{width:min(360px,42vw);height:40px;padding:0 15px;border:1px solid transparent;
     border-radius:999px;    background:#fff;color:#121212;font-family:inherit;font-size:14px;outline:none}
   .library-search:focus{border-color:#a7f3d0;box-shadow:0 0 0 2px rgba(167,243,208,.2)}
@@ -376,7 +374,7 @@ html,body{height:100%;overflow:hidden;background:transparent;color:#fff;
     cursor:pointer;transition:background .2s,transform .2s}
   .library-card:hover{background:#282828;transform:translateY(-2px)}
   .library-card:focus-visible,.library-nav-button:focus-visible,.library-filter:focus-visible,
-  .library-round-button:focus-visible,.library-profile:focus-visible{outline:2px solid #a7f3d0;outline-offset:2px}
+  .library-profile:focus-visible{outline:2px solid #a7f3d0;outline-offset:2px}
   .library-card-art{position:relative;display:grid;place-items:center;aspect-ratio:1/1;margin-bottom:14px;
     overflow:hidden;border-radius:6px;background:linear-gradient(135deg,#27665a,#172d31)}
   .library-card-art img{width:100%;height:100%;object-fit:cover}
@@ -418,6 +416,12 @@ html,body{height:100%;overflow:hidden;background:transparent;color:#fff;
   #library-track-items .queue-next-button.is-added{opacity:1}
   .library-empty-state{padding:24px;color:#b3b3b3;font-size:14px;text-align:center}
   .library-card[hidden]{display:none}
+  .library-scroll-toggle{display:none;position:fixed;right:18px;bottom:82px;z-index:100003;
+    min-width:48px;height:48px;padding:0 16px;border:0;border-radius:999px;
+    background:#a7f3d0;color:#073b2d;box-shadow:0 5px 18px #0008;
+    align-items:center;justify-content:center;gap:8px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer}
+  .library-scroll-toggle svg{width:20px;height:20px;flex:none}
+  .library-scroll-toggle:focus-visible{outline:2px solid #fff;outline-offset:3px}
   #radio-mini-bar{display:block;left:8px;right:8px;bottom:8px;transform:none;width:auto;max-width:none;height:72px;
     padding:10px 16px;border:1px solid #ffffff12;border-radius:8px;background:#181818;box-shadow:0 -4px 24px #0008;
     cursor:default;z-index:100002}
@@ -443,6 +447,7 @@ html,body{height:100%;overflow:hidden;background:transparent;color:#fff;
     .library-card-grid{grid-template-columns:repeat(auto-fill,minmax(138px,1fr));gap:12px}
     .library-card{padding:10px}
     .library-section-heading h2{font-size:19px}
+    .library-scroll-toggle{display:flex;right:14px;bottom:82px}
     #radio-mini-bar{left:8px;right:8px;bottom:8px;height:62px;padding:7px 10px}
     .mini-bar-img{width:44px;height:44px}
     #radio-mini-bar .mini-bar-right{margin-right:0;gap:8px}
@@ -486,8 +491,6 @@ html,body{height:100%;overflow:hidden;background:transparent;color:#fff;
   <main class="library-main" id="library-main">
     <div class="library-topbar">
       <div class="library-topbar-actions">
-        <button class="library-round-button" type="button" aria-label="Volver" onclick="document.getElementById('library-main').scrollTo({top:0,behavior:'smooth'})">‹</button>
-        <button class="library-round-button" type="button" aria-label="Adelante" onclick="document.getElementById('library-main').scrollTo({top:document.getElementById('library-main').scrollHeight,behavior:'smooth'})">›</button>
         <input class="library-search" id="library-search" type="search" placeholder="¿Qué quieres escuchar?" aria-label="Buscar música, podcast o artista">
       </div>
       <button class="library-profile" type="button" onclick="openRadioAbout()"><span class="library-profile-mark">V</span> Viento Sur</button>
@@ -548,7 +551,7 @@ html,body{height:100%;overflow:hidden;background:transparent;color:#fff;
       </div>
     </section>
 
-    <section class="library-section library-track-section">
+    <section class="library-section library-track-section" id="library-track-section">
       <div class="library-section-heading"><h2>En esta selección</h2><button type="button" onclick="openCurrentPlaylist()">ABRIR LISTA</button></div>
       <div class="library-current-list">
         <img class="library-current-cover" id="library-current-cover" src="https://archive.org/download/1790721176200/1790721176200.jpg" alt="">
@@ -559,6 +562,15 @@ html,body{height:100%;overflow:hidden;background:transparent;color:#fff;
     </section>
   </main>
 </div>
+
+<button class="library-scroll-toggle" id="library-scroll-toggle" type="button"
+  aria-label="Ir a la lista de reproducción">
+  <svg id="library-scroll-icon" fill="none" stroke="currentColor" stroke-linecap="round"
+    stroke-linejoin="round" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="m6 9 6 6 6-6"/>
+  </svg>
+  <span id="library-scroll-label">Lista</span>
+</button>
 
 <div id="radio-popup-overlay" role="dialog" aria-modal="true" aria-label="Reproductor Radio Viento Sur">
   <header class="radio-header">
@@ -1050,12 +1062,36 @@ const radioAboutPanel = $('radio-about-panel');
 const playlistPanel = $('playlist-overlay-panel');
 const playlistContainer = $('playlist-items-container');
 const libraryTrackContainer = $('library-track-items');
+const libraryMain = $('library-main');
+const libraryTrackSection = $('library-track-section');
+const libraryScrollToggle = $('library-scroll-toggle');
+const libraryScrollIcon = $('library-scroll-icon');
+const libraryScrollLabel = $('library-scroll-label');
 const panelTitle = $('panel-title');
 const playlistOpenButton = $('playlist-open-button');
 const streamButton = document.querySelector('.stream-button');
 const nextTrackButton = $('next-track-button');
 const shuffleButton = $('shuffle-toggle');
 const repeatButton = $('repeat-toggle');
+
+function updateLibraryScrollToggle() {
+  const sectionTop = libraryTrackSection.getBoundingClientRect().top
+    - libraryMain.getBoundingClientRect().top + libraryMain.scrollTop;
+  const atPlaylist = libraryMain.scrollTop >= sectionTop - 48;
+  libraryScrollToggle.setAttribute('aria-label', atPlaylist ? 'Subir al inicio de la biblioteca' : 'Ir a la lista de reproducción');
+  libraryScrollLabel.innerText = atPlaylist ? 'Subir' : 'Lista';
+  libraryScrollIcon.style.transform = atPlaylist ? 'rotate(180deg)' : '';
+}
+
+function toggleLibraryScroll() {
+  const sectionTop = libraryTrackSection.getBoundingClientRect().top
+    - libraryMain.getBoundingClientRect().top + libraryMain.scrollTop;
+  const atPlaylist = libraryMain.scrollTop >= sectionTop - 48;
+  libraryMain.scrollTo({
+    top: atPlaylist ? 0 : Math.max(0, sectionTop - 16),
+    behavior: 'smooth'
+  });
+}
 
 const playSvg = '<polygon points="6 4 20 12 6 20"/>';
 const pauseSvg = '<rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>';
@@ -1934,6 +1970,10 @@ initializeLibraryCovers();
 $('library-search').addEventListener('input', function () {
   filterLibraryTracks(this.value);
 });
+libraryMain.addEventListener('scroll', updateLibraryScrollToggle, { passive: true });
+window.addEventListener('resize', updateLibraryScrollToggle);
+libraryScrollToggle.addEventListener('click', toggleLibraryScroll);
+updateLibraryScrollToggle();
 selectRandomMusicGenre();
 updateModeButtons();
 
