@@ -884,20 +884,7 @@ const musicGenreLists = {
     'https://archive.org/download/rock-pop_20261006/Man%C3%A1%20-%20Como%20Te%20Deseo.mp3',
     'https://archive.org/download/rock-pop_20261006/Man%C3%A1%20-%20Te%20Llor%C3%A9%20Un%20R%C3%ADo%20%281%29.mp3'
   ]),
-  gaitas: createMusicTrackList([
-    'https://archive.org/download/Gaitas-Venezuela/Alianza%20FT%20Luis%20silva%20-%20Amor%20del%20Bueno.mp3',
-    'https://archive.org/download/Gaitas-Venezuela/Alitasia%20-%20Con%20las%20manos%20en%20el%20pecho.mp3',
-    'https://archive.org/download/Gaitas-Venezuela/Astolfo%20Romero%20-%20La%20Florecita.mp3',
-    'https://archive.org/download/Gaitas-Venezuela/Astolfo%20Romero%20-%20Pa%20Morrocoy.mp3',
-    'https://archive.org/download/Gaitas-Venezuela/Betulio%20Medina%20-%20La%20Grey%20Zuliana.mp3',
-    'https://archive.org/download/Gaitas-Venezuela/Betulio%20Medina%20-%20Nunca%20es%20tarde%20para%20amar.mp3',
-    'https://archive.org/download/Gaitas-Venezuela/Cardenales%20del%20Exito%20-%20Amparito.mp3',
-    'https://archive.org/download/Gaitas-Venezuela/Cardenales%20del%20Exito%20-%20El%20Negrito%20Fullero.mp3',
-    'https://archive.org/download/Gaitas-Venezuela/Cardenales%20del%20Exito%20-%20Entre%20Palos%20y%20Alegria.mp3',
-    'https://archive.org/download/Gaitas-Venezuela/Cardenales%20del%20Exito%20-%20Huele%20a%20Navidad.mp3',
-    'https://archive.org/download/Gaitas-Venezuela/Gran%20Coquivacoa%20-%20Sin%20Rencor.mp3',
-    'https://archive.org/download/Gaitas-Venezuela/Joselo%20Diaz%20-%20Las%20Gaitas%20de%20Joselito.mp3'
-  ]),
+  gaitas: [],
   cantosLlano: createMusicTrackList([
     'https://archive.org/download/cantos-del-llano/Cecilia%20Todd%20-%20Canto%20de%20Ganado.mp3',
     'https://archive.org/download/cantos-del-llano/Simon%20Diaz%20-%20Canto%20de%20Ordeno.mp3',
@@ -1017,6 +1004,7 @@ const microsLists = {
 let currentMode = 'playlist';
 let currentMicroKey = '';
 let currentTrackIndex = 0;
+let musicSelectionRequestId = 0;
 let isPlaying = false;
 let shuffleEnabled = false;
 let repeatMode = 0;
@@ -1351,10 +1339,26 @@ function openCurrentPlaylist() {
   playlistPanel.classList.add('show');
 }
 
+function showPlaylistLoadError(label, err) {
+  console.error('No se pudo cargar ' + label, err);
+  panelTitle.innerText = label;
+  const errorMessage = 'No se pudo cargar ' + label + '. Revisa tu conexión e inténtalo de nuevo.';
+  playlistContainer.innerText = errorMessage;
+  libraryTrackContainer.innerHTML = '';
+  const errorState = document.createElement('div');
+  errorState.className = 'library-empty-state';
+  errorState.innerText = errorMessage;
+  libraryTrackContainer.appendChild(errorState);
+  $('library-current-title').innerText = label;
+  $('library-current-subtitle').innerText = 'No se pudo cargar esta lista';
+  playlistPanel.classList.add('show');
+}
+
 // ============================================================
 // SELECCIÓN
 // ============================================================
 function selectMenuOption(option) {
+  musicSelectionRequestId += 1;
   closeOptionsMenu();
   closeRadioAbout();
   closePlaylistPanel();
@@ -1423,10 +1427,23 @@ function selectLibraryMicro(microKey) {
   if (getCurrentActiveList().length > 0) startPlayback();
 }
 
-function selectMusicGenre(genreKey) {
-  const genreTracks = musicGenreLists[genreKey];
+async function selectMusicGenre(genreKey) {
   const genreLabel = musicGenreLabels[genreKey];
-  if (!genreTracks || !genreLabel) { console.error('Género no disponible:', genreKey); return; }
+  if (!genreLabel) { console.error('Género no disponible:', genreKey); return; }
+  const selectionRequestId = ++musicSelectionRequestId;
+  let genreTracks;
+  if (genreKey === 'gaitas') {
+    try {
+      genreTracks = await fetchArchiveMusicTracks('Gaitas-Venezuela');
+    } catch (err) {
+      if (selectionRequestId === musicSelectionRequestId) showPlaylistLoadError(genreLabel, err);
+      return;
+    }
+    if (selectionRequestId !== musicSelectionRequestId) return;
+  } else {
+    genreTracks = musicGenreLists[genreKey];
+  }
+  if (!genreTracks) { console.error('Género no disponible:', genreKey); return; }
   cancelInterTrackAnnouncement();
   completedTracksSinceRadioBreak = 0;
   closeOptionsMenu();
@@ -1463,9 +1480,11 @@ function selectMusicCollection(collectionKey) {
   };
   const collection = collections[collectionKey];
   if (!collection) return;
+  const selectionRequestId = ++musicSelectionRequestId;
   closeOptionsMenu();
   closeRadioAbout();
   fetchArchiveMusicTracks(collection.archiveId).then(tracks => {
+    if (selectionRequestId !== musicSelectionRequestId) return;
     cancelInterTrackAnnouncement();
     completedTracksSinceRadioBreak = 0;
     closeOptionsMenu();
@@ -1487,22 +1506,13 @@ function selectMusicCollection(collectionKey) {
     if (shuffleEnabled) resetShuffleQueue();
     startPlayback();
   }).catch(err => {
-    console.error('No se pudo cargar ' + collection.label, err);
-    panelTitle.innerText = collection.label;
-    const errorMessage = 'No se pudo cargar ' + collection.label + '. Revisa tu conexión e inténtalo de nuevo.';
-    playlistContainer.innerText = errorMessage;
-    libraryTrackContainer.innerHTML = '';
-    const errorState = document.createElement('div');
-    errorState.className = 'library-empty-state';
-    errorState.innerText = errorMessage;
-    libraryTrackContainer.appendChild(errorState);
-    $('library-current-title').innerText = collection.label;
-    $('library-current-subtitle').innerText = 'No se pudo cargar esta lista';
-    playlistPanel.classList.add('show');
+    if (selectionRequestId !== musicSelectionRequestId) return;
+    showPlaylistLoadError(collection.label, err);
   });
 }
 
 function selectMicroOption(microKey) {
+  musicSelectionRequestId += 1;
   cancelInterTrackAnnouncement();
   completedTracksSinceRadioBreak = 0;
   closeOptionsMenu();
