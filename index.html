@@ -358,29 +358,7 @@ html,body{height:100%;overflow:hidden;background:transparent;color:#fff;
   .library-profile{width:42px;height:42px;padding:0;border:0;border-radius:50%;background:transparent;
     display:grid;place-items:center;overflow:hidden;cursor:pointer}
   .library-profile img{width:100%;height:100%;object-fit:cover;border-radius:50%}
-  .library-greeting-row{display:flex;align-items:center;gap:10px;margin:0 0 18px}
-  .library-greeting{font-size:clamp(25px,3vw,34px);font-weight:800;letter-spacing:-1.1px}
-  .library-greeting-edit{width:34px;height:34px;flex:none;border:0;border-radius:50%;background:#ffffff14;
-    color:#fff;display:grid;place-items:center;cursor:pointer}
-  .library-greeting-edit:hover{background:#ffffff26}
-  .library-greeting-edit:focus-visible{outline:2px solid #a7f3d0;outline-offset:2px}
-  .library-greeting-edit svg{width:17px;height:17px}
-  #greeting-name-dialog{width:min(420px,calc(100% - 32px));margin:auto;padding:24px;border:1px solid #ffffff20;
-    border-radius:16px;background:#1a2422;color:#fff;box-shadow:0 20px 60px #000b}
-  #greeting-name-dialog::backdrop{background:#000b;backdrop-filter:blur(3px)}
-  .greeting-dialog-title{font-size:20px;font-weight:750}
-  .greeting-dialog-description{margin-top:8px;color:#c5d0cb;font-size:14px;line-height:1.5}
-  .greeting-dialog-label{display:block;margin-top:18px;font-size:13px;font-weight:650}
-  #greeting-name-input{width:100%;height:44px;margin-top:8px;padding:0 12px;border:1px solid #ffffff30;
-    border-radius:8px;background:#101514;color:#fff;font:inherit}
-  #greeting-name-input:focus{outline:2px solid #a7f3d0;outline-offset:2px}
-  .greeting-dialog-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
-  .greeting-dialog-actions button{min-height:40px;padding:0 14px;border:0;border-radius:999px;
-    font-family:inherit;font-size:13px;font-weight:600;cursor:pointer}
-  .greeting-dialog-skip{background:transparent;color:#fff}
-  .greeting-dialog-save{background:#a7f3d0;color:#073b2d}
-  .greeting-dialog-feedback{margin-top:12px;color:#fecaca;font-size:13px;line-height:1.45}
-  .greeting-dialog-feedback:empty{display:none}
+  .library-greeting{font-size:clamp(25px,3vw,34px);font-weight:800;letter-spacing:-1.1px;margin:0 0 18px}
   .library-filter-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:26px}
   .library-filter{border:0;border-radius:999px;background:rgba(0,0,0,.42);color:#fff;
     padding:9px 15px;font-size:13px;white-space:nowrap;cursor:pointer}
@@ -519,14 +497,7 @@ html,body{height:100%;overflow:hidden;background:transparent;color:#fff;
       </button>
     </div>
 
-    <div class="library-greeting-row">
-      <h1 class="library-greeting" id="library-greeting">Buenas, ¿qué quieres escuchar?</h1>
-      <button class="library-greeting-edit" id="edit-greeting-button" type="button" aria-label="Personalizar saludo" title="Personalizar saludo">
-        <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="m14 5 5 5M4 20l4.5-1 10-10a2.1 2.1 0 0 0-3-3l-10 10L4 20Z"/>
-        </svg>
-      </button>
-    </div>
+    <h1 class="library-greeting">Buenas, ¿qué quieres escuchar?</h1>
     <div class="library-filter-row" role="group" aria-label="Filtrar biblioteca">
       <button class="library-filter active" type="button" data-library-filter="all" onclick="showLibrarySection('all',this)">Todo</button>
       <button class="library-filter" type="button" data-library-filter="music" onclick="showLibrarySection('music',this)">Música</button>
@@ -592,22 +563,6 @@ html,body{height:100%;overflow:hidden;background:transparent;color:#fff;
     </section>
   </main>
 </div>
-
-<dialog id="greeting-name-dialog" aria-labelledby="greeting-dialog-title" aria-describedby="greeting-dialog-description">
-  <form id="greeting-name-form">
-    <h2 class="greeting-dialog-title" id="greeting-dialog-title">Personaliza tu saludo</h2>
-    <p class="greeting-dialog-description" id="greeting-dialog-description">
-      ¿Cómo quieres que te llamemos? El nombre se guarda únicamente en este navegador.
-    </p>
-    <label class="greeting-dialog-label" for="greeting-name-input">Tu nombre</label>
-    <input id="greeting-name-input" name="name" type="text" maxlength="40" autocomplete="given-name" required>
-    <p class="greeting-dialog-feedback" id="greeting-dialog-feedback" role="status"></p>
-    <div class="greeting-dialog-actions">
-      <button class="greeting-dialog-skip" id="skip-greeting-button" type="button">Ahora no</button>
-      <button class="greeting-dialog-save" type="submit">Guardar</button>
-    </div>
-  </form>
-</dialog>
 
 <button class="library-scroll-toggle" id="library-scroll-toggle" type="button"
   aria-label="Ir a la lista de reproducción">
@@ -1080,8 +1035,6 @@ let streamStatus = 'idle';
 let streamStatusTimer = null;
 let streamRetryTimer = null;
 const playbackStateKey = 'viento-sur-radio-playback';
-const greetingNameKey = 'viento-sur-radio-greeting-name';
-const greetingDismissedKey = 'viento-sur-radio-greeting-dismissed';
 
 // DOM
 const $ = id => document.getElementById(id);
@@ -1113,91 +1066,12 @@ const libraryMain = $('library-main');
 const libraryTrackSection = $('library-track-section');
 const libraryScrollToggle = $('library-scroll-toggle');
 const libraryScrollIcon = $('library-scroll-icon');
-const libraryGreeting = $('library-greeting');
-const greetingDialog = $('greeting-name-dialog');
-const greetingForm = $('greeting-name-form');
-const greetingInput = $('greeting-name-input');
-const greetingFeedback = $('greeting-dialog-feedback');
-const editGreetingButton = $('edit-greeting-button');
-const skipGreetingButton = $('skip-greeting-button');
 const panelTitle = $('panel-title');
 const playlistOpenButton = $('playlist-open-button');
 const streamButton = document.querySelector('.stream-button');
 const nextTrackButton = $('next-track-button');
 const shuffleButton = $('shuffle-toggle');
 const repeatButton = $('repeat-toggle');
-
-let greetingName = '';
-
-function updateLibraryGreeting() {
-  libraryGreeting.textContent = greetingName
-    ? 'Hola ' + greetingName + ', ¿qué quieres escuchar?'
-    : 'Buenas, ¿qué quieres escuchar?';
-}
-
-function openGreetingDialog() {
-  greetingInput.value = greetingName;
-  greetingFeedback.textContent = '';
-  greetingDialog.showModal();
-  greetingInput.focus();
-}
-
-function dismissGreetingDialog() {
-  try {
-    localStorage.setItem(greetingDismissedKey, 'true');
-  } catch (error) {
-    console.error('No se pudo guardar la preferencia del saludo en este navegador.', error);
-  }
-  greetingDialog.close();
-}
-
-function initializeLibraryGreeting() {
-  let dismissed = false;
-  try {
-    greetingName = (localStorage.getItem(greetingNameKey) || '').trim();
-    dismissed = localStorage.getItem(greetingDismissedKey) === 'true';
-  } catch (error) {
-    console.error('No se pudo leer el nombre guardado para el saludo.', error);
-  }
-  updateLibraryGreeting();
-  if (!greetingName && !dismissed) openGreetingDialog();
-}
-
-greetingForm.addEventListener('submit', function (event) {
-  event.preventDefault();
-  const name = greetingInput.value
-    .replace(/[\u0000-\u001f\u007f]/g, '')
-    .trim()
-    .replace(/\s+/g, ' ')
-    .slice(0, 40);
-  if (!name) {
-    greetingFeedback.textContent = 'Escribe un nombre para personalizar el saludo.';
-    greetingInput.focus();
-    return;
-  }
-  try {
-    localStorage.setItem(greetingNameKey, name);
-  } catch (error) {
-    console.error('No se pudo guardar el nombre del saludo en este navegador.', error);
-    greetingFeedback.textContent = 'No se pudo guardar el nombre. Revisa la configuración de almacenamiento del navegador e inténtalo otra vez.';
-    return;
-  }
-  try {
-    localStorage.removeItem(greetingDismissedKey);
-  } catch (error) {
-    console.error('No se pudo actualizar la preferencia del saludo.', error);
-  }
-  greetingName = name;
-  updateLibraryGreeting();
-  greetingDialog.close();
-});
-
-editGreetingButton.addEventListener('click', openGreetingDialog);
-skipGreetingButton.addEventListener('click', dismissGreetingDialog);
-greetingDialog.addEventListener('cancel', function (event) {
-  event.preventDefault();
-  dismissGreetingDialog();
-});
 
 function updateLibraryScrollToggle() {
   const sectionTop = libraryTrackSection.getBoundingClientRect().top
@@ -2090,7 +1964,6 @@ function finishRadioIdentification() {
 // ============================================================
 // INIT
 // ============================================================
-initializeLibraryGreeting();
 initializeLibraryCovers();
 $('library-search').addEventListener('input', function () {
   filterLibraryTracks(this.value);
