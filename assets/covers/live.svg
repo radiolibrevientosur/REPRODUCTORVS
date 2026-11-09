@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Ilustración de portada para live">
+<defs>
+ <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#24b47e"/><stop offset="1" stop-color="#0b433b"/></linearGradient>
+ <radialGradient id="glow"><stop stop-color="#e7c56e" stop-opacity=".48"/><stop offset="1" stop-color="#e7c56e" stop-opacity="0"/></radialGradient>
+ <pattern id="grain" width="32" height="32" patternUnits="userSpaceOnUse"><circle cx="3" cy="5" r="1" fill="#fff" opacity=".13"/><circle cx="24" cy="19" r="1" fill="#fff" opacity=".1"/><circle cx="12" cy="29" r=".8" fill="#fff" opacity=".12"/></pattern>
+ <clipPath id="frame"><rect width="512" height="512" rx="22"/></clipPath>
+</defs>
+<g clip-path="url(#frame)">
+ <path fill="url(#bg)" d="M0 0h512v512H0z"/><circle cx="388" cy="104" r="196" fill="url(#glow)"/>
+ <path d="M-30 422c112-69 194-35 283-82s154-108 304-76v278H-30Z" fill="#0b433b" opacity=".4"/>
+ <path d="M-24 448c123-69 200-37 293-82 90-44 163-69 274-59" fill="none" stroke="#e7c56e" stroke-width="2" opacity=".28"/>
+ <path d="M-10 470c115-61 192-32 280-74s159-64 250-56" fill="none" stroke="#e7c56e" stroke-width="2" opacity=".2"/>
+ <circle cx="256" cy="256" r="184" fill="none" stroke="#e7c56e" stroke-width="1.5" opacity=".18" stroke-dasharray="2 13"/>
+ <g><path d="M256 126c-72 0-130 58-130 130v54h28v-54c0-56 46-102 102-102s102 46 102 102v54h28v-54c0-72-58-130-130-130Z" fill="#f2d89a"/><path d="M256 166c-50 0-90 40-90 90v54h27v-54c0-35 28-63 63-63s63 28 63 63v54h27v-54c0-50-40-90-90-90Z" fill="#d5a94f"/><circle cx="256" cy="265" r="24" fill="#fbf1cf"/><path d="M206 338h100v58c0 25-20 45-45 45h-10c-25 0-45-20-45-45v-58Z" fill="#f4ead0"/><path d="M220 359h72M220 381h72M220 403h55" stroke="#23695c" stroke-width="8" stroke-linecap="round"/></g><path fill="url(#grain)" d="M0 0h512v512H0z"/>
+ <path d="M24 24h464v464H24z" fill="none" stroke="#fff" stroke-opacity=".16" stroke-width="2"/>
+</g></svg>

@@ -1,10 +1,10 @@
-
+<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Radio Viento Sur</title>
-<style><!DOCTYPE html>
+<style>
   *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overflow:hidden;background:transparent;color:#fff;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
@@ -313,9 +313,248 @@ html,body{height:100%;overflow:hidden;background:transparent;color:#fff;
   @media(prefers-reduced-motion:reduce){
     *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
   }
+
+  /* ============================================================
+     BIBLIOTECA
+     ============================================================ */
+  body{background:#000}
+  #radio-popup-overlay{display:none}
+  #library-app{
+    height:100%;min-height:0;display:grid;grid-template-columns:252px minmax(0,1fr);grid-template-rows:minmax(0,1fr);
+    gap:8px;padding:8px 8px 92px;background:#000;color:#fff;overflow:hidden;
+  }
+  .library-sidebar{display:flex;flex-direction:column;gap:8px;min-height:0}
+  .library-side-card{background:#121212;border-radius:8px;padding:18px 12px}
+  .library-brand{display:flex;align-items:center;gap:10px;padding:0 10px 22px;font-size:17px;font-weight:800}
+  .library-brand-mark{width:30px;height:30px;display:grid;place-items:center;border-radius:50%;
+    background:#a7f3d0;color:#064e3b;font-size:17px}
+  .library-nav{display:grid;gap:6px}
+  .library-nav-button{width:100%;padding:10px;border:0;border-radius:6px;background:transparent;
+    color:#b3b3b3;display:flex;align-items:center;gap:14px;text-align:left;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer}
+  .library-nav-button:hover,.library-nav-button.active{color:#fff}
+  .library-nav-button svg{width:22px;height:22px;flex:none}
+  .library-nav-button.active svg{color:#a7f3d0}
+  .library-sidebar-heading{display:flex;justify-content:space-between;align-items:center;
+    padding:0 9px 14px;color:#b3b3b3;font-size:14px;font-weight:700}
+  .library-sidebar-heading button{border:0;background:transparent;color:#b3b3b3;font-size:22px;cursor:pointer}
+  .library-library-link{display:flex;align-items:center;gap:10px;padding:8px 9px;border-radius:6px;
+    color:#b3b3b3;font-size:13px;cursor:pointer}
+  .library-library-link:hover{background:#1b1b1b;color:#fff}
+  .library-library-link.active{background:#1b1b1b;color:#fff}
+  .library-library-link span:first-child{width:30px;height:30px;display:grid;place-items:center;
+    background:linear-gradient(135deg,#455a64,#1a2429);border-radius:4px;color:#a7f3d0}
+  .library-sidebar-note{margin-top:auto;padding:14px 10px 4px;color:#777;font-size:11px;line-height:1.6}
+  .library-main{min-width:0;min-height:0;overflow-y:auto;overscroll-behavior:contain;border-radius:8px;
+    background:linear-gradient(180deg,#244b48 0,#173330 260px,#121212 520px);padding:24px clamp(18px,4vw,48px) 36px}
+  .library-topbar{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:28px}
+  .library-topbar-actions{display:flex;align-items:center;gap:10px}
+  .library-round-button{width:34px;height:34px;border:0;border-radius:50%;background:rgba(0,0,0,.65);
+    color:#fff;display:grid;place-items:center;cursor:pointer}
+  .library-search{width:min(360px,42vw);height:40px;padding:0 15px;border:1px solid transparent;
+    border-radius:999px;    background:#fff;color:#121212;font-family:inherit;font-size:14px;outline:none}
+  .library-search:focus{border-color:#a7f3d0;box-shadow:0 0 0 2px rgba(167,243,208,.2)}
+  .library-profile{border:0;border-radius:999px;background:#090909;color:#fff;padding:6px 12px 6px 6px;
+    display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;cursor:pointer}
+  .library-profile-mark{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:#12614d}
+  .library-greeting{font-size:clamp(25px,3vw,34px);font-weight:800;letter-spacing:-1.1px;margin:0 0 18px}
+  .library-filter-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:26px}
+  .library-filter{border:0;border-radius:999px;background:rgba(0,0,0,.42);color:#fff;
+    padding:9px 15px;font-size:13px;white-space:nowrap;cursor:pointer}
+  .library-filter:hover{background:#303030}
+  .library-filter.active{background:#fff;color:#111}
+  .library-section{margin:0 0 34px}
+  .library-section-heading{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:15px}
+  .library-section-heading h2{font-size:22px;letter-spacing:-.4px;margin:0}
+  .library-section-heading button{border:0;background:none;color:#b3b3b3;font-size:12px;font-weight:700;cursor:pointer}
+  .library-section-heading button:hover{color:#fff;text-decoration:underline}
+  .library-card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:16px}
+  .library-card{min-width:0;padding:14px;border:0;border-radius:8px;background:#181818;color:#fff;text-align:left;
+    cursor:pointer;transition:background .2s,transform .2s}
+  .library-card:hover{background:#282828;transform:translateY(-2px)}
+  .library-card:focus-visible,.library-nav-button:focus-visible,.library-filter:focus-visible,
+  .library-round-button:focus-visible,.library-profile:focus-visible{outline:2px solid #a7f3d0;outline-offset:2px}
+  .library-card-art{position:relative;display:grid;place-items:center;aspect-ratio:1/1;margin-bottom:14px;
+    overflow:hidden;border-radius:6px;background:linear-gradient(135deg,#27665a,#172d31)}
+  .library-card-art img{width:100%;height:100%;object-fit:cover}
+  .library-card-art img.library-cover-img{position:absolute;inset:0}
+  .library-card-art .library-card-icon{position:absolute;right:10px;bottom:10px;width:46px;height:46px;
+    display:grid;place-items:center;border-radius:50%;background:#a7f3d0;color:#073b2d;
+    box-shadow:0 5px 16px #0008;opacity:0;transform:translateY(7px);transition:opacity .2s,transform .2s}
+  .library-card:hover .library-card-icon,.library-card:focus-visible .library-card-icon{opacity:1;transform:translateY(0)}
+  .library-card-art .library-card-icon svg{width:20px;height:20px}
+  .library-card-title{display:block;font-size:14px;font-weight:750;line-height:1.35}
+  .library-card-description{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;
+    overflow:hidden;margin-top:6px;color:#b3b3b3;font-size:12px;line-height:1.45}
+  .library-feature-card{background:linear-gradient(135deg,#245e53,#172624)}
+  .library-feature-card .library-card-art{background:#172624}
+  .library-feature-card .library-card-art img{object-fit:cover;padding:0}
+  .library-feature-card .library-card-art #library-live-art{object-fit:contain;padding:20px;background:#172624}
+  .library-track-section{padding-top:2px}
+  .library-current-list{display:flex;align-items:center;gap:14px;margin:0 0 20px}
+  .library-current-cover{width:66px;height:66px;border-radius:5px;object-fit:cover;box-shadow:0 5px 18px #0006}
+  .library-current-copy{min-width:0}
+  .library-current-eyebrow{font-size:10px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:#d0f4e3}
+  .library-current-title{margin-top:5px;font-size:clamp(23px,3vw,32px);font-weight:800;letter-spacing:-.7px}
+  .library-current-subtitle{margin-top:5px;color:#c5d0cb;font-size:12px}
+  .library-track-heading{display:grid;grid-template-columns:34px minmax(0,1fr) 70px;gap:12px;
+    align-items:center;padding:0 12px 9px;margin-bottom:7px;border-bottom:1px solid #ffffff20;
+    color:#b3b3b3;font-size:11px}
+  #library-track-items{display:flex;flex-direction:column;gap:2px}
+  #library-track-items .playlist-item{min-height:58px;padding:7px 12px;border:0;border-radius:5px;background:transparent;gap:12px}
+  #library-track-items .playlist-item:hover{background:#ffffff16}
+  #library-track-items .playlist-item.active{background:#ffffff1a}
+  #library-track-items .playlist-item-cover{width:42px;height:42px;border-radius:4px}
+  #library-track-items .library-track-number{width:24px;flex:none;color:#b3b3b3;text-align:right;font-size:12px}
+  #library-track-items .playlist-item-title{font-size:13px;font-weight:500}
+  #library-track-items .playlist-item-artist{font-size:12px}
+  #library-track-items .playlist-item.active .playlist-item-title{color:#a7f3d0}
+  #library-track-items .queue-next-button{width:34px;height:34px;opacity:0}
+  #library-track-items .playlist-item:hover .queue-next-button,
+  #library-track-items .queue-next-button:focus-visible,
+  #library-track-items .queue-next-button.is-added{opacity:1}
+  .library-empty-state{padding:24px;color:#b3b3b3;font-size:14px;text-align:center}
+  .library-card[hidden]{display:none}
+  #radio-mini-bar{display:block;left:8px;right:8px;bottom:8px;transform:none;width:auto;max-width:none;height:72px;
+    padding:10px 16px;border:1px solid #ffffff12;border-radius:8px;background:#181818;box-shadow:0 -4px 24px #0008;
+    cursor:default;z-index:100002}
+  #radio-mini-bar.show{display:block}
+  .mini-bar-content{justify-content:space-between}
+  .mini-bar-left{min-width:0;flex:1}
+  .mini-bar-text{min-width:0}
+  .mini-bar-title,.mini-bar-subtitle{max-width:min(40vw,260px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mini-bar-right{gap:15px}
+  #radio-mini-bar .mini-bar-right{margin-right:clamp(10px,6vw,90px)}
+  #radio-mini-bar .mini-progress-line{bottom:-10px;height:2px}
+  #radio-mini-bar .mini-progress-fill{background:#a7f3d0}
+  #radio-mini-bar .mini-bar-btn{width:38px;height:38px;align-items:center;justify-content:center}
+  #radio-mini-bar .mini-bar-btn:hover{color:#a7f3d0}
+  @media(max-width:760px){
+    #library-app{display:block;padding:0 0 82px}
+    .library-sidebar{display:none}
+    .library-main{height:100%;border-radius:0;padding:18px 16px 30px;background:linear-gradient(180deg,#244b48 0,#172d2a 250px,#121212 520px)}
+    .library-topbar{margin-bottom:24px}
+    .library-search{width:min(52vw,280px)}
+    .library-profile{font-size:0;padding:4px}
+    .library-profile-mark{width:28px;height:28px}
+    .library-card-grid{grid-template-columns:repeat(auto-fill,minmax(138px,1fr));gap:12px}
+    .library-card{padding:10px}
+    .library-section-heading h2{font-size:19px}
+    #radio-mini-bar{left:8px;right:8px;bottom:8px;height:62px;padding:7px 10px}
+    .mini-bar-img{width:44px;height:44px}
+    #radio-mini-bar .mini-bar-right{margin-right:0;gap:8px}
+  }
+  @media(max-width:420px){
+    .library-card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .library-current-cover{width:54px;height:54px}
+    .library-track-heading{grid-template-columns:28px minmax(0,1fr) 36px}
+    #library-track-items .playlist-item{gap:9px;padding-left:7px;padding-right:7px}
+    #library-track-items .playlist-item-cover{width:38px;height:38px}
+    #library-track-items .queue-next-button{width:30px;height:30px}
+    #radio-mini-bar .mini-bar-title,#radio-mini-bar .mini-bar-subtitle{max-width:38vw}
+    #radio-mini-bar .mini-bar-right{gap:3px}
+  }
 </style>
 </head>
 <body>
+
+<div id="library-app">
+  <aside class="library-sidebar" aria-label="Navegación principal">
+    <div class="library-side-card">
+      <div class="library-brand"><span class="library-brand-mark" aria-hidden="true">♫</span> Viento Sur</div>
+      <nav class="library-nav">
+        <button class="library-nav-button active" type="button" onclick="showLibrarySection('all',this)">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg>Inicio
+        </button>
+        <button class="library-nav-button" type="button" onclick="document.getElementById('library-search').focus()">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></svg>Buscar
+        </button>
+      </nav>
+    </div>
+    <div class="library-side-card" style="flex:1;min-height:0">
+      <div class="library-sidebar-heading"><span>Tu biblioteca</span><button type="button" aria-label="Explorar biblioteca" onclick="showLibrarySection('all',document.querySelector('.library-nav-button'))">＋</button></div>
+      <div class="library-library-link" onclick="showLibrarySection('music',this)"><span>♫</span><span>Selección musical</span></div>
+      <div class="library-library-link" onclick="showLibrarySection('podcast',this)"><span>◉</span><span>Podcasts</span></div>
+      <div class="library-library-link" onclick="showLibrarySection('micros',this)"><span>◌</span><span>Micros radiales</span></div>
+      <div class="library-sidebar-note">Radio comunitaria, cultura y música para acompañarte.</div>
+    </div>
+  </aside>
+
+  <main class="library-main" id="library-main">
+    <div class="library-topbar">
+      <div class="library-topbar-actions">
+        <button class="library-round-button" type="button" aria-label="Volver" onclick="document.getElementById('library-main').scrollTo({top:0,behavior:'smooth'})">‹</button>
+        <button class="library-round-button" type="button" aria-label="Adelante" onclick="document.getElementById('library-main').scrollTo({top:document.getElementById('library-main').scrollHeight,behavior:'smooth'})">›</button>
+        <input class="library-search" id="library-search" type="search" placeholder="¿Qué quieres escuchar?" aria-label="Buscar música, podcast o artista">
+      </div>
+      <button class="library-profile" type="button" onclick="openRadioAbout()"><span class="library-profile-mark">V</span> Viento Sur</button>
+    </div>
+
+    <h1 class="library-greeting">Buenas, ¿qué quieres escuchar?</h1>
+    <div class="library-filter-row" role="group" aria-label="Filtrar biblioteca">
+      <button class="library-filter active" type="button" data-library-filter="all" onclick="showLibrarySection('all',this)">Todo</button>
+      <button class="library-filter" type="button" data-library-filter="music" onclick="showLibrarySection('music',this)">Música</button>
+      <button class="library-filter" type="button" data-library-filter="podcast" onclick="showLibrarySection('podcast',this)">Podcasts</button>
+      <button class="library-filter" type="button" data-library-filter="micros" onclick="showLibrarySection('micros',this)">Micros</button>
+    </div>
+
+    <section class="library-section" data-library-section="music">
+      <div class="library-section-heading"><h2>Explora la selección musical</h2></div>
+      <div class="library-card-grid">
+        <button class="library-card library-feature-card" type="button" data-library-type="music" data-search="radio viento sur en vivo emisora" onclick="selectMenuOption('streaming')">
+          <span class="library-card-art"><img id="library-live-art" class="library-cover-img" src="" alt="Logo de Radio Viento Sur"></span>
+          <span class="library-card-title">Viento Sur en vivo</span><span class="library-card-description">La radio, en directo desde donde estés.</span>
+        </button>
+        <button class="library-card" type="button" data-library-type="music" data-search="boleros románticas" onclick="selectMusicGenre('boleros')"><span class="library-card-art" style="background:linear-gradient(145deg,#8b5e83,#251c3b)"><span class="library-card-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span></span><span class="library-card-title">Boleros</span><span class="library-card-description">Clásicos para cantar y recordar.</span></button>
+        <button class="library-card" type="button" data-library-type="music" data-search="jazz" onclick="selectMusicGenre('jazz')"><span class="library-card-art" style="background:linear-gradient(145deg,#34547c,#141d32)"><span class="library-card-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span></span><span class="library-card-title">Jazz</span><span class="library-card-description">Ritmos y grandes intérpretes.</span></button>
+        <button class="library-card" type="button" data-library-type="music" data-search="rock pop" onclick="selectMusicGenre('rockPop')"><span class="library-card-art" style="background:linear-gradient(145deg,#bf564b,#341b2b)"><span class="library-card-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span></span><span class="library-card-title">Rock-Pop</span><span class="library-card-description">Canciones para subir el volumen.</span></button>
+        <button class="library-card" type="button" data-library-type="music" data-search="gaita venezolana" onclick="selectMusicGenre('gaitas')"><span class="library-card-art" style="background:linear-gradient(145deg,#ba812e,#39232a)"><span class="library-card-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span></span><span class="library-card-title">Gaita Venezolana</span><span class="library-card-description">Tradición zuliana para celebrar.</span></button>
+        <button class="library-card" type="button" data-library-type="music" data-search="cantos del llano tonadas" onclick="selectMusicGenre('cantosLlano')"><span class="library-card-art" style="background:linear-gradient(145deg,#76883f,#253529)"><span class="library-card-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span></span><span class="library-card-title">Cantos del Llano</span><span class="library-card-description">Tonadas y voces de nuestra tierra.</span></button>
+        <button class="library-card" type="button" data-library-type="music" data-search="joropo central tuyero" onclick="selectMusicGenre('joropoCentral')"><span class="library-card-art" style="background:linear-gradient(145deg,#c46734,#3b2521)"><span class="library-card-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span></span><span class="library-card-title">Joropo Central y Tuyero</span><span class="library-card-description">Arpa, maracas y tradición.</span></button>
+        <button class="library-card" type="button" data-library-type="music" data-search="joropo llanero" onclick="selectMusicGenre('joropoLlanero')"><span class="library-card-art" style="background:linear-gradient(145deg,#477a67,#1d2c2d)"><span class="library-card-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span></span><span class="library-card-title">Joropo Llanero</span><span class="library-card-description">El sonido del llano venezolano.</span></button>
+        <button class="library-card" type="button" data-library-type="music" data-search="música electrónica afro criollo" onclick="selectMusicGenre('electronica')"><span class="library-card-art" style="background:linear-gradient(145deg,#6e46a1,#20203e)"><span class="library-card-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span></span><span class="library-card-title">Música Electrónica</span><span class="library-card-description">Encuentros entre ritmos y sonidos.</span></button>
+        <button class="library-card" type="button" data-library-type="music" data-search="calipso" onclick="selectMusicCollection('calipso')"><span class="library-card-art" style="background:linear-gradient(145deg,#cf573a,#52263b)"><span class="library-card-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span></span><span class="library-card-title">Calipso</span><span class="library-card-description">Ritmos festivos de nuestra región.</span></button>
+        <button class="library-card" type="button" data-library-type="music" data-search="ritmofusión fusión mestiza" onclick="selectMusicCollection('fusion')"><span class="library-card-art" style="background:linear-gradient(145deg,#357976,#192f3b)"><span class="library-card-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span></span><span class="library-card-title">RitmoFusión</span><span class="library-card-description">Mezclas y sonidos de distintas raíces.</span></button>
+        <button class="library-card" type="button" data-library-type="music" data-search="románticas venezuela" onclick="selectMusicCollection('romanticas')"><span class="library-card-art" style="background:linear-gradient(145deg,#b34e75,#361e38)"><span class="library-card-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span></span><span class="library-card-title">Románticas Vzla</span><span class="library-card-description">Canciones venezolanas para dedicar.</span></button>
+        <button class="library-card" type="button" data-library-type="music" data-search="música navideña navidad" onclick="selectMusicCollection('navidena')"><span class="library-card-art" style="background:linear-gradient(145deg,#a33c46,#283b34)"><span class="library-card-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span></span><span class="library-card-title">Música Navideña</span><span class="library-card-description">Canciones para compartir en diciembre.</span></button>
+        <button class="library-card" type="button" data-library-type="music" data-search="oriental vzla" onclick="selectMusicCollection('oriental')"><span class="library-card-art" style="background:linear-gradient(145deg,#8a6e45,#293d42)"><span class="library-card-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span></span><span class="library-card-title">Oriental Vzla</span><span class="library-card-description">Sonidos tradicionales del oriente venezolano.</span></button>
+        <button class="library-card" type="button" data-library-type="music" data-search="merengue venezolano" onclick="selectMusicCollection('merengue')"><span class="library-card-art" style="background:linear-gradient(145deg,#a95d39,#34223a)"><span class="library-card-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span></span><span class="library-card-title">Merengue Venezolano</span><span class="library-card-description">Un ritmo alegre con identidad propia.</span></button>
+        <button class="library-card" type="button" data-library-type="music" data-search="música social canción" onclick="selectMusicCollection('social')"><span class="library-card-art" style="background:linear-gradient(145deg,#61794f,#243540)"><span class="library-card-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span></span><span class="library-card-title">Música Social</span><span class="library-card-description">Canciones que cuentan historias y realidades.</span></button>
+        <button class="library-card" type="button" data-library-type="music" data-search="tambores vzla percusión" onclick="selectMusicCollection('tambores')"><span class="library-card-art" style="background:linear-gradient(145deg,#a94c32,#3a2526)"><span class="library-card-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span></span><span class="library-card-title">Tambores Vzla</span><span class="library-card-description">Percusión, raíz y fiesta popular.</span></button>
+        <button class="library-card" type="button" data-library-type="music" data-search="tradicional folclor venezuela" onclick="selectMusicCollection('folclor')"><span class="library-card-art" style="background:linear-gradient(145deg,#b88b43,#293d37)"><span class="library-card-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span></span><span class="library-card-title">Tradicional Vzla</span><span class="library-card-description">Folclor y memoria musical venezolana.</span></button>
+      </div>
+    </section>
+
+    <section class="library-section" data-library-section="podcast">
+      <div class="library-section-heading"><h2>Podcasts</h2><button type="button" onclick="selectLibraryPodcast()">VER EPISODIOS</button></div>
+      <div class="library-card-grid">
+        <button class="library-card" type="button" data-library-type="podcast" data-search="podcast asoprovida juventud vida" onclick="selectLibraryPodcast()"><span class="library-card-art" style="background:linear-gradient(145deg,#3b8061,#163a35)"><span class="library-card-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span></span><span class="library-card-title">Voces de Asoprovida</span><span class="library-card-description">Programas y conversaciones para escuchar con calma.</span></button>
+      </div>
+    </section>
+
+    <section class="library-section" data-library-section="micros">
+      <div class="library-section-heading"><h2>Micros radiales</h2></div>
+      <div class="library-card-grid">
+        <button class="library-card" type="button" data-library-type="micros" data-search="micros culturales educación" onclick="selectLibraryMicro('micros_culturales')"><span class="library-card-art" style="background:linear-gradient(145deg,#3b667b,#1a273c)"><span class="library-card-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span></span><span class="library-card-title">Micros Culturales</span><span class="library-card-description">Cápsulas de cultura y conocimiento.</span></button>
+        <button class="library-card" type="button" data-library-type="micros" data-search="poesía" onclick="selectLibraryMicro('poesia')"><span class="library-card-art" style="background:linear-gradient(145deg,#73577e,#2b253b)"><span class="library-card-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span></span><span class="library-card-title">Poesía</span><span class="library-card-description">Palabras y versos para acompañarte.</span></button>
+        <button class="library-card" type="button" data-library-type="micros" data-search="software libre tecnología" onclick="selectLibraryMicro('software_libre')"><span class="library-card-art" style="background:linear-gradient(145deg,#437259,#1f302c)"><span class="library-card-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span></span><span class="library-card-title">Software Libre</span><span class="library-card-description">Tecnología, comunidad y libertad.</span></button>
+        <button class="library-card" type="button" data-library-type="micros" data-search="consejos comunales" onclick="selectLibraryMicro('consejos_comunales')"><span class="library-card-art" style="background:linear-gradient(145deg,#a16a38,#372a2b)"><span class="library-card-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span></span><span class="library-card-title">Consejos Comunales</span><span class="library-card-description">Organización y participación comunitaria.</span></button>
+        <button class="library-card" type="button" data-library-type="micros" data-search="asoprovida" onclick="selectLibraryMicro('asoprovida')"><span class="library-card-art" style="background:linear-gradient(145deg,#54845c,#233833)"><span class="library-card-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span></span><span class="library-card-title">Asoprovida</span><span class="library-card-description">Contenido de la asociación y su comunidad.</span></button>
+        <button class="library-card" type="button" data-library-type="micros" data-search="eduardo galeano" onclick="selectLibraryMicro('eduardo_galeano')"><span class="library-card-art" style="background:linear-gradient(145deg,#9b6b4c,#312637)"><span class="library-card-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span></span><span class="library-card-title">Eduardo Galeano</span><span class="library-card-description">Relatos y voces de nuestra América.</span></button>
+        <button class="library-card" type="button" data-library-type="micros" data-search="chef radiofónico cocina" onclick="selectLibraryMicro('chefe_radiofonico')"><span class="library-card-art" style="background:linear-gradient(145deg,#b17842,#42332a)"><span class="library-card-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span></span><span class="library-card-title">Chef Radiofónico</span><span class="library-card-description">Sabores y cocina en formato radial.</span></button>
+      </div>
+    </section>
+
+    <section class="library-section library-track-section">
+      <div class="library-section-heading"><h2>En esta selección</h2><button type="button" onclick="openCurrentPlaylist()">ABRIR LISTA</button></div>
+      <div class="library-current-list">
+        <img class="library-current-cover" id="library-current-cover" src="https://archive.org/download/1790721176200/1790721176200.jpg" alt="">
+        <div class="library-current-copy"><div class="library-current-eyebrow">LISTA DE REPRODUCCIÓN</div><div class="library-current-title" id="library-current-title">Selección musical</div><div class="library-current-subtitle" id="library-current-subtitle">Viento Sur Radio · canciones</div></div>
+      </div>
+      <div class="library-track-heading"><span>#</span><span>Título</span><span>Agregar</span></div>
+      <div id="library-track-items"></div>
+    </section>
+  </main>
+</div>
 
 <div id="radio-popup-overlay" role="dialog" aria-modal="true" aria-label="Reproductor Radio Viento Sur">
   <header class="radio-header">
@@ -491,10 +730,38 @@ html,body{height:100%;overflow:hidden;background:transparent;color:#fff;
 // ============================================================
 // ⚙️ CONFIGURACIÓN Y LISTAS REALES
 // ============================================================
-const musicCover = 'https://archive.org/download/1790721176200/1790721176200.jpg';
+const musicCover = 'assets/covers/seleccion.svg';
 const radioArtworkUrl = 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhEGkk2XfvnEHSl6zTAt5GkFYEcK8kGIgFrPyDiQwFq_tkE6IcKzQphvG9TUOGSF-y5A3Pnc66X1s9ZrBvnQ7k3K8XkOyjDrRuf44Oy94uFzq-lZeVpsY_RunWfJVkgoMPqhtQk1qJZQVKKZ8WWUggwdWOX0v4cJc6yOzrXUBPViPdAkkvKZ0HIEIkxC-4/s512/logo_2Bvientosur2020.png';
 const liveStreamUrl = 'https://giss.tv:666/vientosuronline.mp3';
 const radioIdentificationUrl = 'https://ia600401.us.archive.org/9/items/tisp-88.5/TISP%2088.5%20Alvarez%20Jr.mp3';
+
+const coverArt = key => 'assets/covers/' + key + '.svg';
+let currentCoverArt = coverArt('seleccion');
+
+function coverTracks(tracks, key) {
+  const cover = coverArt(key);
+  return tracks.map(track => Object.assign({}, track, { cover }));
+}
+
+function initializeLibraryCovers() {
+  document.querySelectorAll('.library-card').forEach(card => {
+    const action = card.getAttribute('onclick') || '';
+    const selection = action.match(/selectMusicGenre\('([^']+)'\)|selectMusicCollection\('([^']+)'\)|selectLibraryMicro\('([^']+)'\)/);
+    const key = selection ? selection.slice(1).find(Boolean)
+      : action.includes('selectLibraryPodcast') ? 'podcast'
+      : action.includes("selectMenuOption('streaming')") ? 'live' : '';
+    if (!key) return;
+    const art = card.querySelector('.library-card-art');
+    let image = art.querySelector('img');
+    if (!image) {
+      image = document.createElement('img');
+      image.className = 'library-cover-img';
+      image.alt = '';
+      art.insertBefore(image, art.firstChild);
+    }
+    image.src = key === 'live' ? radioArtworkUrl : coverArt(key);
+  });
+}
 
 // Playlist estándar
 const standardMusicPlaylist = [
@@ -778,6 +1045,7 @@ const dropdownMenu = $('radio-dropdown');
 const radioAboutPanel = $('radio-about-panel');
 const playlistPanel = $('playlist-overlay-panel');
 const playlistContainer = $('playlist-items-container');
+const libraryTrackContainer = $('library-track-items');
 const panelTitle = $('panel-title');
 const playlistOpenButton = $('playlist-open-button');
 const streamButton = document.querySelector('.stream-button');
@@ -869,6 +1137,8 @@ function loadTrack(index) {
   currentTrackIndex = index;
   const track = activeList[currentTrackIndex];
   audio.src = track.url;
+  currentCoverArt = track.cover || musicCover;
+  if (popup.style.display !== 'flex') miniBar.style.display = 'block';
   trackTitle.innerText = track.title;
   trackArtist.innerText = track.artist;
   trackCover.src = track.cover;
@@ -889,15 +1159,37 @@ function loadTrack(index) {
 // ============================================================
 function renderListItems() {
   playlistContainer.innerHTML = '';
-  const activeList = getCurrentActiveList();
+  libraryTrackContainer.innerHTML = '';
+  const activeList = currentMode === 'streaming' ? [] : getCurrentActiveList();
   if (currentMode === 'podcast') panelTitle.innerText = 'Episodios de Podcast';
   else if (currentMode === 'micros') panelTitle.innerText = headerTopTitle.innerText;
   else panelTitle.innerText = 'Selección Musical';
 
+  let libraryTitle = 'Selección musical';
+  if (currentMode === 'podcast') libraryTitle = 'Podcasts de Asoprovida';
+  else if (currentMode === 'micros') libraryTitle = headerTopTitle.innerText.replace(/^MICROS:\s*/i, '');
+  else if (currentMode === 'streaming') libraryTitle = 'Emisión en vivo';
+  else if (headerTopTitle.innerText.includes(':')) libraryTitle = headerTopTitle.innerText.split(':').slice(1).join(':').trim();
+  $('library-current-title').innerText = libraryTitle;
+  $('library-current-subtitle').innerText = currentMode === 'streaming'
+    ? 'Radio Viento Sur · en directo'
+    : 'Viento Sur Radio · ' + activeList.length + (activeList.length === 1 ? ' elemento' : ' elementos');
+  $('library-current-cover').src = currentMode === 'streaming' ? radioArtworkUrl : (activeList[currentTrackIndex]?.cover || currentCoverArt);
+
   if (activeList.length === 0) {
-    playlistContainer.innerHTML = '<div style="color:#b3b3b3;font-size:14px;text-align:center;padding:20px 0;">Próximamente se agregarán micros a esta sección.</div>';
+    const emptyMessage = currentMode === 'streaming'
+      ? 'La transmisión en vivo no tiene una lista de pistas.'
+      : 'Próximamente se agregarán micros a esta sección.';
+    playlistContainer.innerHTML = '<div style="color:#b3b3b3;font-size:14px;text-align:center;padding:20px 0;">' + emptyMessage + '</div>';
+    libraryTrackContainer.innerHTML = '<div class="library-empty-state">' + emptyMessage + '</div>';
     return;
   }
+  renderTrackItemsInto(playlistContainer, activeList, true);
+  renderTrackItemsInto(libraryTrackContainer, activeList, false);
+  filterLibraryTracks($('library-search').value);
+}
+
+function renderTrackItemsInto(container, activeList, closePanelOnSelect) {
   activeList.forEach((track, index) => {
     const item = document.createElement('div');
     item.className = 'playlist-item' + (index === currentTrackIndex ? ' active' : '');
@@ -910,13 +1202,19 @@ function renderListItems() {
       if (shuffleEnabled) resetShuffleQueue();
       if (!isPlaying) togglePlay();
       else audio.play();
-      closePlaylistPanel();
+      if (closePanelOnSelect) closePlaylistPanel();
     };
     const cover = document.createElement('img');
     cover.className = 'playlist-item-cover';
     cover.src = track.cover || trackCover.src;
     cover.alt = 'Portada de ' + track.title;
     cover.loading = 'lazy';
+    if (!closePanelOnSelect) {
+      const number = document.createElement('span');
+      number.className = 'library-track-number';
+      number.innerText = String(index + 1);
+      item.appendChild(number);
+    }
     const info = document.createElement('div');
     info.className = 'playlist-item-info';
     const title = document.createElement('div');
@@ -945,7 +1243,38 @@ function renderListItems() {
     item.appendChild(cover);
     item.appendChild(info);
     item.appendChild(queueButton);
-    playlistContainer.appendChild(item);
+    container.appendChild(item);
+  });
+}
+
+let activeLibraryFilter = 'all';
+function showLibrarySection(filter, button) {
+  activeLibraryFilter = filter;
+  const isFilterButton = button && button.classList.contains('library-filter');
+  document.querySelectorAll('.library-filter').forEach(item => {
+    item.classList.toggle('active', isFilterButton ? item === button : item.dataset.libraryFilter === filter);
+  });
+  document.querySelectorAll('.library-nav-button').forEach(item => {
+    item.classList.toggle('active', button && button.closest('.library-nav') ? item === button : filter === 'all' && item.textContent.trim() === 'Inicio');
+  });
+  document.querySelectorAll('.library-library-link').forEach(item => item.classList.toggle('active', item === button));
+  filterLibraryTracks($('library-search').value);
+}
+
+function filterLibraryTracks(query) {
+  const search = query.trim().toLocaleLowerCase('es');
+  document.querySelectorAll('.library-card').forEach(card => {
+    const matchesText = !search || (card.dataset.search + ' ' + card.innerText).toLocaleLowerCase('es').includes(search);
+    const section = card.closest('[data-library-section]');
+    const matchesSection = activeLibraryFilter === 'all' || !section || section.dataset.librarySection === activeLibraryFilter;
+    card.hidden = !matchesText || !matchesSection;
+  });
+  document.querySelectorAll('[data-library-section]').forEach(section => {
+    const hasVisibleCards = Array.from(section.querySelectorAll('.library-card')).some(card => !card.hidden);
+    section.hidden = !hasVisibleCards;
+  });
+  document.querySelectorAll('#library-track-items .playlist-item').forEach(item => {
+    item.hidden = !!search && !item.innerText.toLocaleLowerCase('es').includes(search);
   });
 }
 
@@ -995,6 +1324,8 @@ function selectMenuOption(option) {
 
   if (option === 'podcast') {
     if (podcastList.length === 0) { alert('No hay episodios de podcast disponibles.'); return; }
+    currentCoverArt = coverArt('podcast');
+    podcastList.forEach(track => { track.cover = currentCoverArt; });
     clearStreamStatusTimer();
     clearStreamRetryTimer();
     clearPlayNextQueue();
@@ -1024,7 +1355,10 @@ function selectMenuOption(option) {
     miniArtist.innerText = 'Viento Sur Radio';
     trackCover.src = radioArtworkUrl;
     miniCover.src = radioArtworkUrl;
+    currentCoverArt = radioArtworkUrl;
     audio.src = liveStreamUrl;
+    if (popup.style.display !== 'flex') miniBar.style.display = 'block';
+    renderListItems();
     if (isPlaying) startPlayback();
     else updateNowPlayingTag();
     checkOfflineState();
@@ -1037,6 +1371,18 @@ function selectMenuOption(option) {
   }, 50);
   return; // Salir de la función inmediatamente
 }
+}
+
+function selectLibraryPodcast() {
+  selectMenuOption('podcast');
+  closePlaylistPanel();
+  startPlayback();
+}
+
+function selectLibraryMicro(microKey) {
+  selectMicroOption(microKey);
+  closePlaylistPanel();
+  if (getCurrentActiveList().length > 0) startPlayback();
 }
 
 function selectMusicGenre(genreKey) {
@@ -1058,7 +1404,8 @@ function selectMusicGenre(genreKey) {
   playlistOpenButton.style.display = 'flex';
   headerTopTitle.innerText = 'SELECCIÓN MUSICAL: ' + genreLabel.toUpperCase();
   tagLabel.innerText = genreLabel;
-  playlist = shuffleArray(genreTracks);
+  currentCoverArt = coverArt(genreKey);
+  playlist = coverTracks(shuffleArray(genreTracks), genreKey);
   loadTrack(0);
   if (shuffleEnabled) resetShuffleQueue();
   startPlayback();
@@ -1096,14 +1443,23 @@ function selectMusicCollection(collectionKey) {
     playlistOpenButton.style.display = 'flex';
     headerTopTitle.innerText = 'SELECCIÓN MUSICAL: ' + collection.label.toUpperCase();
     tagLabel.innerText = collection.label;
-    playlist = tracks;
+    currentCoverArt = coverArt(collectionKey);
+    playlist = coverTracks(tracks, collectionKey);
     loadTrack(0);
     if (shuffleEnabled) resetShuffleQueue();
     startPlayback();
   }).catch(err => {
     console.error('No se pudo cargar ' + collection.label, err);
     panelTitle.innerText = collection.label;
-    playlistContainer.innerText = 'No se pudo cargar ' + collection.label + '. Revisa tu conexión e inténtalo de nuevo.';
+    const errorMessage = 'No se pudo cargar ' + collection.label + '. Revisa tu conexión e inténtalo de nuevo.';
+    playlistContainer.innerText = errorMessage;
+    libraryTrackContainer.innerHTML = '';
+    const errorState = document.createElement('div');
+    errorState.className = 'library-empty-state';
+    errorState.innerText = errorMessage;
+    libraryTrackContainer.appendChild(errorState);
+    $('library-current-title').innerText = collection.label;
+    $('library-current-subtitle').innerText = 'No se pudo cargar esta lista';
     playlistPanel.classList.add('show');
   });
 }
@@ -1123,6 +1479,8 @@ function selectMicroOption(microKey) {
   streamButton.style.display = 'flex';
   playlistOpenButton.style.display = 'flex';
   currentMicroKey = microKey;
+  currentCoverArt = coverArt(microKey);
+  microsLists[microKey] = coverTracks(microsLists[microKey] || [], microKey);
 
   const titles = {
     asoprovida: 'MICROS: ASOPROVIDA',
@@ -1144,6 +1502,8 @@ function selectMicroOption(microKey) {
   if (list.length > 0) {
     loadTrack(0);
     if (shuffleEnabled) resetShuffleQueue();
+  } else {
+    renderListItems();
   }
   playlistPanel.classList.add('show');
 }
@@ -1505,6 +1865,10 @@ function finishRadioIdentification() {
 // ============================================================
 // INIT
 // ============================================================
+initializeLibraryCovers();
+$('library-search').addEventListener('input', function () {
+  filterLibraryTracks(this.value);
+});
 selectRandomMusicGenre();
 updateModeButtons();
 
@@ -1561,8 +1925,12 @@ window.selectMenuOption = selectMenuOption;
 window.selectMusicGenre = selectMusicGenre;
 window.selectMusicCollection = selectMusicCollection;
 window.selectMicroOption = selectMicroOption;
+window.selectLibraryPodcast = selectLibraryPodcast;
+window.selectLibraryMicro = selectLibraryMicro;
+window.showLibrarySection = showLibrarySection;
 window.closeRadioAbout = closeRadioAbout;
 window.closePlaylistPanel = closePlaylistPanel;
+window.openRadioAbout = openRadioAbout;
 window.openCurrentPlaylist = openCurrentPlaylist;
 window.saveAudioOffline = saveAudioOffline;
 window.toggleShuffle = toggleShuffle;
