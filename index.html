@@ -523,6 +523,7 @@ html,body{height:100%;overflow:hidden;background:transparent;color:#fff;
         <button class="library-card" type="button" data-library-type="music" data-search="calipso" onclick="selectMusicCollection('calipso')"><span class="library-card-art" style="background:linear-gradient(145deg,#cf573a,#52263b)"><span class="library-card-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span></span><span class="library-card-title">Calipso</span><span class="library-card-description">Ritmos festivos de nuestra región.</span></button>
         <button class="library-card" type="button" data-library-type="music" data-search="ritmofusión fusión mestiza" onclick="selectMusicCollection('fusion')"><span class="library-card-art" style="background:linear-gradient(145deg,#357976,#192f3b)"><span class="library-card-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span></span><span class="library-card-title">RitmoFusión</span><span class="library-card-description">Mezclas y sonidos de distintas raíces.</span></button>
         <button class="library-card" type="button" data-library-type="music" data-search="románticas venezuela" onclick="selectMusicCollection('romanticas')"><span class="library-card-art" style="background:linear-gradient(145deg,#b34e75,#361e38)"><span class="library-card-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span></span><span class="library-card-title">Románticas Vzla</span><span class="library-card-description">Canciones venezolanas para dedicar.</span></button>
+        <button class="library-card" type="button" data-library-type="music" data-search="salsa venezuela" onclick="selectMusicCollection('salsa')"><span class="library-card-art" style="background:linear-gradient(145deg,#d14f32,#49212c)"><span class="library-card-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span></span><span class="library-card-title">Salsa Venezuela</span><span class="library-card-description">Salsa hecha con sabor venezolano.</span></button>
         <button class="library-card" type="button" data-library-type="music" data-search="música navideña navidad" onclick="selectMusicCollection('navidena')"><span class="library-card-art" style="background:linear-gradient(145deg,#a33c46,#283b34)"><span class="library-card-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span></span><span class="library-card-title">Música Navideña</span><span class="library-card-description">Canciones para compartir en diciembre.</span></button>
         <button class="library-card" type="button" data-library-type="music" data-search="oriental vzla" onclick="selectMusicCollection('oriental')"><span class="library-card-art" style="background:linear-gradient(145deg,#8a6e45,#293d42)"><span class="library-card-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span></span><span class="library-card-title">Oriental Vzla</span><span class="library-card-description">Sonidos tradicionales del oriente venezolano.</span></button>
         <button class="library-card" type="button" data-library-type="music" data-search="merengue venezolano" onclick="selectMusicCollection('merengue')"><span class="library-card-art" style="background:linear-gradient(145deg,#a95d39,#34223a)"><span class="library-card-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span></span><span class="library-card-title">Merengue Venezolano</span><span class="library-card-description">Un ritmo alegre con identidad propia.</span></button>
@@ -606,6 +607,7 @@ html,body{height:100%;overflow:hidden;background:transparent;color:#fff;
         <div class="radio-dropdown-item subitem" onclick="selectMusicCollection('fusion')">RitmoFusión</div>
         <div class="radio-dropdown-item subitem" onclick="selectMusicGenre('rockPop')">Rock-Pop</div>
         <div class="radio-dropdown-item subitem" onclick="selectMusicCollection('romanticas')">Románticas Vzla</div>
+        <div class="radio-dropdown-item subitem" onclick="selectMusicCollection('salsa')">Salsa Venezuela</div>
         <div class="radio-dropdown-item subitem" onclick="selectMusicCollection('tambores')">Tambores Vzla</div>
         <div class="radio-dropdown-item subitem" onclick="selectMusicCollection('folclor')">Tradicional Vzla</div>
       </div>
@@ -1511,6 +1513,7 @@ function selectMusicCollection(collectionKey) {
   const collections = {
     fusion: { archiveId: 'fusion_202610', label: 'RitmoFusión' },
     romanticas: { archiveId: 'romantica-venezuela', label: 'Románticas Vzla' },
+    salsa: { archiveId: 'Salsa-venezuela', label: 'Salsa Venezuela' },
     calipso: { archiveId: 'calipso_202610', label: 'Calipso' },
     navidena: { archiveId: 'musicanavidena_202610', label: 'Música Navideña' },
     oriental: { archiveId: 'oriental-vzla_202610', label: 'Oriental Vzla' },
@@ -1525,7 +1528,8 @@ function selectMusicCollection(collectionKey) {
   loadingPlaylistLabel = '';
   closeOptionsMenu();
   closeRadioAbout();
-  if (collectionKey === 'romanticas') {
+  const refreshFromArchive = collectionKey === 'romanticas' || collectionKey === 'salsa';
+  if (refreshFromArchive) {
     cancelInterTrackAnnouncement();
     completedTracksSinceRadioBreak = 0;
     closePlaylistPanel();
@@ -1557,7 +1561,7 @@ function selectMusicCollection(collectionKey) {
     updateNowPlayingTag();
     renderListItems();
   }
-  fetchArchiveMusicTracks(collection.archiveId, collectionKey === 'romanticas' ? { cache: 'no-store' } : undefined).then(tracks => {
+  fetchArchiveMusicTracks(collection.archiveId, refreshFromArchive ? { cache: 'no-store' } : undefined).then(tracks => {
     if (selectionRequestId !== musicSelectionRequestId) return;
     cancelInterTrackAnnouncement();
     completedTracksSinceRadioBreak = 0;
