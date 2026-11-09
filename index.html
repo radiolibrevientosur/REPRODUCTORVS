@@ -1525,7 +1525,39 @@ function selectMusicCollection(collectionKey) {
   loadingPlaylistLabel = '';
   closeOptionsMenu();
   closeRadioAbout();
-  fetchArchiveMusicTracks(collection.archiveId).then(tracks => {
+  if (collectionKey === 'romanticas') {
+    cancelInterTrackAnnouncement();
+    completedTracksSinceRadioBreak = 0;
+    closePlaylistPanel();
+    clearStreamStatusTimer();
+    clearStreamRetryTimer();
+    clearPlayNextQueue();
+    currentMode = 'playlist';
+    currentMicroKey = '';
+    streamStatus = 'idle';
+    streamButton.style.display = 'flex';
+    playlistOpenButton.style.display = 'flex';
+    playlist = [];
+    currentCoverArt = coverArt(collectionKey);
+    loadingPlaylistLabel = collection.label;
+    headerTopTitle.innerText = 'SELECCIÓN MUSICAL: ' + collection.label.toUpperCase();
+    tagLabel.innerText = collection.label;
+    trackTitle.innerText = 'Cargando ' + collection.label + '…';
+    miniTitle.innerText = trackTitle.innerText;
+    trackArtist.innerText = 'Viento Sur Radio';
+    miniArtist.innerText = trackArtist.innerText;
+    trackCover.src = currentCoverArt;
+    miniCover.src = currentCoverArt;
+    audio.pause();
+    isPlaying = false;
+    mainPlayIcon.innerHTML = playSvg;
+    miniPlayIcon.innerHTML = playSvg;
+    mainPlayButton.setAttribute('aria-label', 'Reproducir');
+    miniPlayButton.setAttribute('aria-label', 'Reanudar reproducción');
+    updateNowPlayingTag();
+    renderListItems();
+  }
+  fetchArchiveMusicTracks(collection.archiveId, collectionKey === 'romanticas' ? { cache: 'no-store' } : undefined).then(tracks => {
     if (selectionRequestId !== musicSelectionRequestId) return;
     cancelInterTrackAnnouncement();
     completedTracksSinceRadioBreak = 0;
@@ -1538,6 +1570,7 @@ function selectMusicCollection(collectionKey) {
     currentMode = 'playlist';
     currentMicroKey = '';
     streamStatus = 'idle';
+    loadingPlaylistLabel = '';
     streamButton.style.display = 'flex';
     playlistOpenButton.style.display = 'flex';
     headerTopTitle.innerText = 'SELECCIÓN MUSICAL: ' + collection.label.toUpperCase();
