@@ -355,9 +355,9 @@ html,body{height:100%;overflow:hidden;background:transparent;color:#fff;
   .library-search{width:min(360px,42vw);height:40px;padding:0 15px;border:1px solid transparent;
     border-radius:999px;    background:#fff;color:#121212;font-family:inherit;font-size:14px;outline:none}
   .library-search:focus{border-color:#a7f3d0;box-shadow:0 0 0 2px rgba(167,243,208,.2)}
-  .library-profile{border:0;border-radius:999px;background:#090909;color:#fff;padding:6px 12px 6px 6px;
-    display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;cursor:pointer}
-  .library-profile-mark{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:#12614d}
+  .library-profile{width:42px;height:42px;padding:0;border:0;border-radius:50%;background:transparent;
+    display:grid;place-items:center;overflow:hidden;cursor:pointer}
+  .library-profile img{width:100%;height:100%;object-fit:cover;border-radius:50%}
   .library-greeting{font-size:clamp(25px,3vw,34px);font-weight:800;letter-spacing:-1.1px;margin:0 0 18px}
   .library-filter-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:26px}
   .library-filter{border:0;border-radius:999px;background:rgba(0,0,0,.42);color:#fff;
@@ -417,9 +417,9 @@ html,body{height:100%;overflow:hidden;background:transparent;color:#fff;
   .library-empty-state{padding:24px;color:#b3b3b3;font-size:14px;text-align:center}
   .library-card[hidden]{display:none}
   .library-scroll-toggle{display:none;position:fixed;right:18px;bottom:82px;z-index:100003;
-    min-width:48px;height:48px;padding:0 16px;border:0;border-radius:999px;
+    width:48px;height:48px;padding:0;border:0;border-radius:50%;
     background:#a7f3d0;color:#073b2d;box-shadow:0 5px 18px #0008;
-    align-items:center;justify-content:center;gap:8px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer}
+    align-items:center;justify-content:center;cursor:pointer}
   .library-scroll-toggle svg{width:20px;height:20px;flex:none}
   .library-scroll-toggle:focus-visible{outline:2px solid #fff;outline-offset:3px}
   #radio-mini-bar{display:block;left:8px;right:8px;bottom:8px;transform:none;width:auto;max-width:none;height:72px;
@@ -442,8 +442,7 @@ html,body{height:100%;overflow:hidden;background:transparent;color:#fff;
     .library-main{height:100%;border-radius:0;padding:18px 16px 30px;background:linear-gradient(180deg,#244b48 0,#172d2a 250px,#121212 520px)}
     .library-topbar{margin-bottom:24px}
     .library-search{width:min(52vw,280px)}
-    .library-profile{font-size:0;padding:4px}
-    .library-profile-mark{width:28px;height:28px}
+    .library-profile{width:36px;height:36px}
     .library-card-grid{grid-template-columns:repeat(auto-fill,minmax(138px,1fr));gap:12px}
     .library-card{padding:10px}
     .library-section-heading h2{font-size:19px}
@@ -493,7 +492,9 @@ html,body{height:100%;overflow:hidden;background:transparent;color:#fff;
       <div class="library-topbar-actions">
         <input class="library-search" id="library-search" type="search" placeholder="¿Qué quieres escuchar?" aria-label="Buscar música, podcast o artista">
       </div>
-      <button class="library-profile" type="button" onclick="openRadioAbout()"><span class="library-profile-mark">V</span> Viento Sur</button>
+      <button class="library-profile" type="button" aria-label="Sobre Viento Sur" onclick="openRadioAbout()">
+        <img src="https://archive.org/download/1790721176200/1790721176200.jpg" alt="Logo de Viento Sur">
+      </button>
     </div>
 
     <h1 class="library-greeting">Buenas, ¿qué quieres escuchar?</h1>
@@ -569,7 +570,6 @@ html,body{height:100%;overflow:hidden;background:transparent;color:#fff;
     stroke-linejoin="round" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true">
     <path d="m6 9 6 6 6-6"/>
   </svg>
-  <span id="library-scroll-label">Lista</span>
 </button>
 
 <div id="radio-popup-overlay" role="dialog" aria-modal="true" aria-label="Reproductor Radio Viento Sur">
@@ -1066,7 +1066,6 @@ const libraryMain = $('library-main');
 const libraryTrackSection = $('library-track-section');
 const libraryScrollToggle = $('library-scroll-toggle');
 const libraryScrollIcon = $('library-scroll-icon');
-const libraryScrollLabel = $('library-scroll-label');
 const panelTitle = $('panel-title');
 const playlistOpenButton = $('playlist-open-button');
 const streamButton = document.querySelector('.stream-button');
@@ -1079,7 +1078,6 @@ function updateLibraryScrollToggle() {
     - libraryMain.getBoundingClientRect().top + libraryMain.scrollTop;
   const atPlaylist = libraryMain.scrollTop >= sectionTop - 48;
   libraryScrollToggle.setAttribute('aria-label', atPlaylist ? 'Subir al inicio de la biblioteca' : 'Ir a la lista de reproducción');
-  libraryScrollLabel.innerText = atPlaylist ? 'Subir' : 'Lista';
   libraryScrollIcon.style.transform = atPlaylist ? 'rotate(180deg)' : '';
 }
 
