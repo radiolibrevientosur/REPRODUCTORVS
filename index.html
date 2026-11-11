@@ -371,8 +371,7 @@ html,body{height:100%;overflow:hidden;background:transparent;color:#fff;
   .library-section-heading button{border:0;background:none;color:#b3b3b3;font-size:12px;font-weight:700;cursor:pointer}
   .library-section-heading button:hover{color:#fff;text-decoration:underline}
   .library-section .library-carousel-arrow{position:absolute;z-index:2;top:calc(42px + clamp(74px,9vw,95px));
-    width:42px;height:42px;
-    display:grid;place-items:center;transform:translateY(-50%);
+    width:42px;height:42px;display:none;place-items:center;transform:translateY(-50%);
     border:1px solid #ffffff30;border-radius:50%;
     background:rgba(18,18,18,.88);color:#fff;box-shadow:0 4px 18px #0008;
     -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
@@ -475,7 +474,6 @@ html,body{height:100%;overflow:hidden;background:transparent;color:#fff;
     .library-section.is-expanded .library-card-grid{grid-template-columns:repeat(auto-fill,minmax(138px,1fr));gap:12px}
     .library-card{padding:10px}
     .library-section-heading h2{font-size:19px}
-    .library-section .library-carousel-arrow{display:none}
     .library-scroll-toggle{display:flex;right:14px;bottom:82px}
     #radio-mini-bar{left:8px;right:8px;bottom:8px;height:62px;padding:7px 10px}
     .mini-bar-img{width:44px;height:44px}
