@@ -387,6 +387,13 @@ html,body{height:100%;overflow:hidden;background:transparent;color:#fff;
   .library-card-grid{display:flex;gap:16px;overflow-x:auto;overflow-y:hidden;padding:3px 2px 10px;
     margin:0 -2px;overscroll-behavior-inline:contain;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;
     scrollbar-width:none}
+  .library-section.is-expanded .library-card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));
+    overflow:visible;padding:3px 0 0;margin:0;scroll-snap-type:none}
+  .library-section.is-expanded .library-card{min-width:0}
+  .library-section.is-expanded .library-carousel-arrow{display:none}
+  .library-section-heading .library-show-all{flex:none;padding:6px 0;color:#b3b3b3;
+    background:transparent;font-size:12px;font-weight:700;white-space:nowrap}
+  .library-section-heading .library-show-all:hover{color:#fff;text-decoration:underline}
   .library-card-grid::-webkit-scrollbar{display:none}
   .library-card-grid:focus-visible{outline:2px solid #a7f3d0;outline-offset:2px}
   .library-card{min-width:0;padding:14px;border:0;border-radius:8px;background:#181818;color:#fff;text-align:left;
@@ -465,6 +472,7 @@ html,body{height:100%;overflow:hidden;background:transparent;color:#fff;
     .library-search{width:min(52vw,280px)}
     .library-profile{width:36px;height:36px}
     .library-card-grid{gap:12px}
+    .library-section.is-expanded .library-card-grid{grid-template-columns:repeat(auto-fill,minmax(138px,1fr));gap:12px}
     .library-card{padding:10px}
     .library-section-heading h2{font-size:19px}
     .library-section .library-carousel-arrow{width:36px;height:36px}
@@ -474,6 +482,7 @@ html,body{height:100%;overflow:hidden;background:transparent;color:#fff;
     #radio-mini-bar .mini-bar-right{margin-right:0;gap:8px}
   }
   @media(max-width:420px){
+    .library-section.is-expanded .library-card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
     .library-current-cover{width:54px;height:54px}
     .library-track-heading{grid-template-columns:28px minmax(0,1fr) 36px}
     #library-track-items .playlist-item{gap:9px;padding-left:7px;padding-right:7px}
@@ -529,6 +538,7 @@ html,body{height:100%;overflow:hidden;background:transparent;color:#fff;
     <section class="library-section" data-library-section="music">
       <div class="library-section-heading">
         <h2>Explora la selección musical</h2>
+        <button class="library-show-all" type="button" aria-expanded="false" onclick="toggleLibrarySection(this)">Mostrar todo</button>
         <div class="library-section-actions" aria-label="Controles de la selección musical">
           <button class="library-carousel-arrow library-carousel-arrow-left" type="button" aria-label="Desplazar selección musical a la izquierda" onclick="scrollLibraryCarousel(this,-1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>
           <button class="library-carousel-arrow library-carousel-arrow-right" type="button" aria-label="Desplazar selección musical a la derecha" onclick="scrollLibraryCarousel(this,1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
@@ -563,6 +573,7 @@ html,body{height:100%;overflow:hidden;background:transparent;color:#fff;
     <section class="library-section" data-library-section="podcast">
       <div class="library-section-heading">
         <h2>Podcasts</h2>
+        <button class="library-show-all" type="button" aria-expanded="false" onclick="toggleLibrarySection(this)">Mostrar todo</button>
         <div class="library-section-actions">
           <button type="button" onclick="selectLibraryPodcast()">VER EPISODIOS</button>
           <button class="library-carousel-arrow library-carousel-arrow-left" type="button" aria-label="Desplazar podcasts a la izquierda" onclick="scrollLibraryCarousel(this,-1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>
@@ -577,6 +588,7 @@ html,body{height:100%;overflow:hidden;background:transparent;color:#fff;
     <section class="library-section" data-library-section="micros">
       <div class="library-section-heading">
         <h2>Micros radiales</h2>
+        <button class="library-show-all" type="button" aria-expanded="false" onclick="toggleLibrarySection(this)">Mostrar todo</button>
         <div class="library-section-actions" aria-label="Controles de micros radiales">
           <button class="library-carousel-arrow library-carousel-arrow-left" type="button" aria-label="Desplazar micros radiales a la izquierda" onclick="scrollLibraryCarousel(this,-1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>
           <button class="library-carousel-arrow library-carousel-arrow-right" type="button" aria-label="Desplazar micros radiales a la derecha" onclick="scrollLibraryCarousel(this,1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
@@ -827,6 +839,16 @@ function updateLibraryCarouselControls(grid) {
   const maxScroll = grid.scrollWidth - grid.clientWidth;
   arrows[0].disabled = grid.scrollLeft <= 1;
   arrows[1].disabled = grid.scrollLeft >= maxScroll - 1;
+}
+
+function toggleLibrarySection(button) {
+  const section = button.closest('.library-section');
+  const expanded = section.classList.toggle('is-expanded');
+  button.textContent = expanded ? 'Mostrar menos' : 'Mostrar todo';
+  button.setAttribute('aria-expanded', String(expanded));
+  const grid = section.querySelector('.library-card-grid');
+  if (!expanded) grid.scrollLeft = 0;
+  updateLibraryCarouselControls(grid);
 }
 
 function scrollLibraryCarousel(button, direction) {
@@ -1356,6 +1378,8 @@ function filterLibraryTracks(query) {
   document.querySelectorAll('[data-library-section]').forEach(section => {
     const hasVisibleCards = Array.from(section.querySelectorAll('.library-card')).some(card => !card.hidden);
     section.hidden = !hasVisibleCards;
+    const grid = section.querySelector('.library-card-grid');
+    if (grid) updateLibraryCarouselControls(grid);
   });
   document.querySelectorAll('#library-track-items .playlist-item').forEach(item => {
     item.hidden = !!search && !item.innerText.toLocaleLowerCase('es').includes(search);
@@ -2175,6 +2199,7 @@ window.selectLibraryPodcast = selectLibraryPodcast;
 window.selectLibraryMicro = selectLibraryMicro;
 window.showLibrarySection = showLibrarySection;
 window.scrollLibraryCarousel = scrollLibraryCarousel;
+window.toggleLibrarySection = toggleLibrarySection;
 window.closeRadioAbout = closeRadioAbout;
 window.closePlaylistPanel = closePlaylistPanel;
 window.openRadioAbout = openRadioAbout;
