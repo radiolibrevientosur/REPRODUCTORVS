@@ -5,7 +5,6 @@
  <linearGradient id="shade" x1="0" y1="0" x2="0" y2="1"><stop offset=".35" stop-color="#080b0f" stop-opacity="0"/><stop offset=".68" stop-color="#080b0f" stop-opacity=".5"/><stop offset="1" stop-color="#080b0f" stop-opacity=".96"/></linearGradient>
  <radialGradient id="vignette"><stop offset=".38" stop-color="#080b0e" stop-opacity="0"/><stop offset="1" stop-color="#080b0e" stop-opacity=".55"/></radialGradient>
  <filter id="blur"><feGaussianBlur stdDeviation="24"/></filter>
- <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency=".72" numOctaves="3" seed="50" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncA type="table" tableValues="0 .26"/></feComponentTransfer><feBlend in="SourceGraphic" mode="soft-light"/></filter>
  <filter id="shadow" x="-20%" y="-30%" width="140%" height="170%"><feGaussianBlur in="SourceAlpha" stdDeviation="4" result="blur"/><feOffset dy="3"/><feComponentTransfer><feFuncA type="linear" slope=".65"/></feComponentTransfer><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>
 </defs>
 <path fill="url(#bg)" d="M0 0h512v512H0z"/><path fill="url(#wash)" d="M0 0h512v512H0z"/><g><circle cx="371" cy="158" r="64" fill="#eed08c" opacity=".8"/><circle cx="371" cy="158" r="94" fill="#eed08c" opacity=".17" filter="url(#blur)"/><path d="M-20 321c83-70 132-84 201-61 61 19 90 72 153 48s104-104 214-70v274H-20Z" fill="#80924e" opacity=".72"/><path d="M-20 377c82-49 133-50 205-8 71 41 121 41 188-2s109-47 159-30v175H-20Z" fill="#283b2c" opacity=".9"/><path d="M-20 429c77-25 125-27 188-1m115-2c56 19 107 18 177-12" fill="none" stroke="#eed08c" stroke-width="3" opacity=".5"/></g>
@@ -17,5 +16,4 @@
 <g filter="url(#shadow)"><text x="43" y="405" class="title" fill="#fff" font-family="Georgia,serif" font-weight="700" letter-spacing="-1.6" font-size="43">Cantos del Llano</text></g>
 <text x="45" y="479" fill="#fff" fill-opacity=".78" font-family="Arial,sans-serif" font-size="12" font-weight="700" letter-spacing="1.7">TONADAS DE NUESTRA TIERRA</text>
 <text x="468" y="479" text-anchor="end" fill="#eed08c" fill-opacity=".88" font-family="Arial,sans-serif" font-size="10" letter-spacing="1.3">RVS  ·  88.5</text>
-<g filter="url(#grain)" opacity=".34"><path fill="#fff" d="M0 0h512v512H0z"/></g>
 </svg>
