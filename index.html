@@ -369,8 +369,15 @@ html,body{height:100%;overflow:hidden;background:transparent;color:#fff;
   .library-section-heading h2{font-size:22px;letter-spacing:-.4px;margin:0}
   .library-section-heading button{border:0;background:none;color:#b3b3b3;font-size:12px;font-weight:700;cursor:pointer}
   .library-section-heading button:hover{color:#fff;text-decoration:underline}
-  .library-card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:16px}
+  .library-card-grid{display:flex;gap:16px;overflow-x:auto;overflow-y:hidden;padding:3px 2px 10px;
+    margin:0 -2px;overscroll-behavior-inline:contain;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;
+    scrollbar-width:thin;scrollbar-color:#ffffff40 transparent}
+  .library-card-grid::-webkit-scrollbar{height:6px}
+  .library-card-grid::-webkit-scrollbar-track{background:transparent}
+  .library-card-grid::-webkit-scrollbar-thumb{border-radius:999px;background:#ffffff40}
+  .library-card-grid:focus-visible{outline:2px solid #a7f3d0;outline-offset:2px}
   .library-card{min-width:0;padding:14px;border:0;border-radius:8px;background:#181818;color:#fff;text-align:left;
+    flex:0 0 clamp(148px,18vw,190px);scroll-snap-align:start;
     cursor:pointer;transition:background .2s,transform .2s}
   .library-card:hover{background:#282828;transform:translateY(-2px)}
   .library-card:focus-visible,.library-nav-button:focus-visible,.library-filter:focus-visible,
@@ -443,7 +450,7 @@ html,body{height:100%;overflow:hidden;background:transparent;color:#fff;
     .library-topbar{margin-bottom:24px}
     .library-search{width:min(52vw,280px)}
     .library-profile{width:36px;height:36px}
-    .library-card-grid{grid-template-columns:repeat(auto-fill,minmax(138px,1fr));gap:12px}
+    .library-card-grid{gap:12px}
     .library-card{padding:10px}
     .library-section-heading h2{font-size:19px}
     .library-scroll-toggle{display:flex;right:14px;bottom:82px}
@@ -452,7 +459,6 @@ html,body{height:100%;overflow:hidden;background:transparent;color:#fff;
     #radio-mini-bar .mini-bar-right{margin-right:0;gap:8px}
   }
   @media(max-width:420px){
-    .library-card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
     .library-current-cover{width:54px;height:54px}
     .library-track-heading{grid-template-columns:28px minmax(0,1fr) 36px}
     #library-track-items .playlist-item{gap:9px;padding-left:7px;padding-right:7px}
@@ -507,7 +513,7 @@ html,body{height:100%;overflow:hidden;background:transparent;color:#fff;
 
     <section class="library-section" data-library-section="music">
       <div class="library-section-heading"><h2>Explora la selección musical</h2></div>
-      <div class="library-card-grid">
+      <div class="library-card-grid" role="region" aria-label="Selección musical; desplázate horizontalmente para explorar" tabindex="0">
         <button class="library-card library-feature-card" type="button" data-library-type="music" data-search="radio viento sur en vivo emisora" onclick="selectMenuOption('streaming')">
           <span class="library-card-art"><img id="library-live-art" class="library-cover-img" src="" alt="Logo de Radio Viento Sur"></span>
           <span class="library-card-title">Viento Sur en vivo</span><span class="library-card-description">La radio, en directo desde donde estés.</span>
@@ -535,14 +541,14 @@ html,body{height:100%;overflow:hidden;background:transparent;color:#fff;
 
     <section class="library-section" data-library-section="podcast">
       <div class="library-section-heading"><h2>Podcasts</h2><button type="button" onclick="selectLibraryPodcast()">VER EPISODIOS</button></div>
-      <div class="library-card-grid">
+      <div class="library-card-grid" role="region" aria-label="Podcasts; desplázate horizontalmente para explorar" tabindex="0">
         <button class="library-card" type="button" data-library-type="podcast" data-search="podcast asoprovida juventud vida" onclick="selectLibraryPodcast()"><span class="library-card-art" style="background:linear-gradient(145deg,#3b8061,#163a35)"><span class="library-card-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span></span><span class="library-card-title">Voces de Asoprovida</span><span class="library-card-description">Programas y conversaciones para escuchar con calma.</span></button>
       </div>
     </section>
 
     <section class="library-section" data-library-section="micros">
       <div class="library-section-heading"><h2>Micros radiales</h2></div>
-      <div class="library-card-grid">
+      <div class="library-card-grid" role="region" aria-label="Micros radiales; desplázate horizontalmente para explorar" tabindex="0">
         <button class="library-card" type="button" data-library-type="micros" data-search="micros culturales educación" onclick="selectLibraryMicro('micros_culturales')"><span class="library-card-art" style="background:linear-gradient(145deg,#3b667b,#1a273c)"><span class="library-card-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span></span><span class="library-card-title">Micros Culturales</span><span class="library-card-description">Cápsulas de cultura y conocimiento.</span></button>
         <button class="library-card" type="button" data-library-type="micros" data-search="poesía" onclick="selectLibraryMicro('poesia')"><span class="library-card-art" style="background:linear-gradient(145deg,#73577e,#2b253b)"><span class="library-card-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span></span><span class="library-card-title">Poesía</span><span class="library-card-description">Palabras y versos para acompañarte.</span></button>
         <button class="library-card" type="button" data-library-type="micros" data-search="software libre tecnología" onclick="selectLibraryMicro('software_libre')"><span class="library-card-art" style="background:linear-gradient(145deg,#437259,#1f302c)"><span class="library-card-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span></span><span class="library-card-title">Software Libre</span><span class="library-card-description">Tecnología, comunidad y libertad.</span></button>
