@@ -837,6 +837,12 @@ const musicGenreLabels = {
   joropoLlanero: 'Joropo Llanero'
 };
 
+const dynamicMusicGenreArchives = {
+  boleros: 'lista-de-boleros',
+  gaitas: 'Gaitas-Venezuela',
+  rockPop: 'rock-pop_20261006'
+};
+
 const musicGenreLists = {
   electronica: createMusicTrackList([
     'https://archive.org/download/electro_202610/Africanismo%20ft%20Bob%20Sinclair%20-%20Sea%20Lion%20Woman.mp3',
@@ -850,18 +856,7 @@ const musicGenreLists = {
     'https://archive.org/download/electro_202610/DJ%20Pablo%20Guzman%20-%20Los%20Hijos%20Infinitos%20%28Andres%20Eloy%20Blanco%29.mp3',
     'https://archive.org/download/electro_202610/Emily%20Galaviz%20y%20Manuel%20Santos%20-%20Va%20colgando%20de%20un%20hilito%20%28Guayabo%20Tech%29.mp3'
   ]),
-  boleros: createMusicTrackList([
-    'https://archive.org/download/lista-de-boleros/Amparo%20Montes%20-%20Pensando%20en%20Ti.mp3',
-    'https://archive.org/download/lista-de-boleros/Armando%20Manzanero%20-%20Somos%20Novios.mp3',
-    'https://archive.org/download/lista-de-boleros/Celia%20Cruz%20-%20Quiz%C3%A1s_%20Quiz%C3%A1s_%20Quiz%C3%A1s.mp3',
-    'https://archive.org/download/lista-de-boleros/Felipe%20Pirela%20-%20Cuando%20Estemos%20Viejos.mp3',
-    'https://archive.org/download/lista-de-boleros/H%C3%A9ctor%20Cabrera%20-%20Hay%20Que%20Saber%20Perder.mp3',
-    'https://archive.org/download/lista-de-boleros/Julio%20Jaramillo%20-%20Nuestro%20Juramento.mp3',
-    'https://archive.org/download/lista-de-boleros/Los%20Panchos%20-%20B%C3%A9same%20Mucho.mp3',
-    'https://archive.org/download/lista-de-boleros/Panchito%20Riset%20-%20De%20Cigarro%20En%20Cigarro.mp3',
-    'https://archive.org/download/lista-de-boleros/Panchito%20Riset%20-%20Te%20Odio%20Y%20Te%20Quiero.mp3',
-    'https://archive.org/download/lista-de-boleros/Rita%20Pay%C3%A9s_%20Elisabeth%20Roma%20-%20Algo%20contigo.mp3'
-  ]),
+  boleros: [],
   jazz: createMusicTrackList([
     'https://archive.org/download/jazz_20261006/Billie%20Holiday%20-%20Blue%20Moon.mp3',
     'https://archive.org/download/jazz_20261006/Clifford%20Brown%20-%20Joy%20Spring.mp3',
@@ -874,18 +869,7 @@ const musicGenreLists = {
     'https://archive.org/download/jazz_20261006/Louis%20Armstrong%20-%20La%20vie%20en%20rose.mp3',
     'https://archive.org/download/jazz_20261006/Wayne%20Shorter%20-%20Night%20Dreamer%20-%20Remastered%202004%20_%20Rudy%20Van%20Gelder%20Edition.mp3'
   ]),
-  rockPop: createMusicTrackList([
-    'https://archive.org/download/rock-pop_20261006/Aterciopelados%20-%20Maligno.mp3',
-    'https://archive.org/download/rock-pop_20261006/Caf%C3%A9%20Tacvba%20-%20Chilanga%20banda.mp3',
-    'https://archive.org/download/rock-pop_20261006/Caifanes%20-%20La%20Negra%20Tomasa%20-%20Bilongo%20-%20Versi%C3%B3n%20Tropical%20%281%29.mp3',
-    'https://archive.org/download/rock-pop_20261006/El%20%C3%9Altimo%20De%20La%20Fila%20-%20Como%20un%20burro%20amarrado%20en%20la%20puerta%20del%20baile.mp3',
-    'https://archive.org/download/rock-pop_20261006/Hombres%20G%20-%20Te%20quiero.mp3',
-    'https://archive.org/download/rock-pop_20261006/La%20Uni%C3%B3n%20-%20Lobo-hombre%20en%20Par%C3%ADs%20-%20En%20directo%201991.mp3',
-    'https://archive.org/download/rock-pop_20261006/Los%20Fabulosos%20Cadillacs%20-%20Calaveras%20y%20Diablitos.mp3',
-    'https://archive.org/download/rock-pop_20261006/Los%20Pericos%20-%20Runaway.mp3',
-    'https://archive.org/download/rock-pop_20261006/Man%C3%A1%20-%20Como%20Te%20Deseo.mp3',
-    'https://archive.org/download/rock-pop_20261006/Man%C3%A1%20-%20Te%20Llor%C3%A9%20Un%20R%C3%ADo%20%281%29.mp3'
-  ]),
+  rockPop: [],
   gaitas: [],
   cantosLlano: createMusicTrackList([
     'https://archive.org/download/cantos-del-llano/Cecilia%20Todd%20-%20Canto%20de%20Ganado.mp3',
@@ -1442,7 +1426,8 @@ async function selectMusicGenre(genreKey) {
   const selectionRequestId = ++musicSelectionRequestId;
   loadingPlaylistLabel = '';
   let genreTracks;
-  if (genreKey === 'gaitas') {
+  const archiveId = dynamicMusicGenreArchives[genreKey];
+  if (archiveId) {
     cancelInterTrackAnnouncement();
     completedTracksSinceRadioBreak = 0;
     closeOptionsMenu();
@@ -1476,7 +1461,7 @@ async function selectMusicGenre(genreKey) {
     updateNowPlayingTag();
     renderListItems();
     try {
-      genreTracks = await fetchArchiveMusicTracks('Gaitas-Venezuela', { cache: 'no-store' });
+      genreTracks = await fetchArchiveMusicTracks(archiveId, { cache: 'no-store' });
     } catch (err) {
       if (selectionRequestId === musicSelectionRequestId) showPlaylistLoadError(genreLabel, err);
       return;
